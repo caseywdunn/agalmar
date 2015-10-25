@@ -1,11 +1,4 @@
-library(edgeR)
-library(seriation)
-library(ape)
-library(hutan)
-
 # Make S3 style classes available to S4 code
-setOldClass(c("phylo"))
-setOldClass(c("DGEList"))
 
 ################################################################################
 # Classes

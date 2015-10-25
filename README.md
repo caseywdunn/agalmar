@@ -31,11 +31,6 @@ First, install the [devtools](https://github.com/hadley/devtools) package. Then,
     library(devtools)
     install_bitbucket('caseywdunn/agalmar')
 
-### Sourcing
-
-This is a crude way of sourcing some of the basic components of the package:
-
-    source("http://bitbucket.org/caseywdunn/agalmar/src/master/R/utility_functions.R")
 
 ## Development
 
