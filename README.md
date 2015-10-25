@@ -14,8 +14,6 @@ See the manual,
 
 ## Example usage
 
-### Create a zero-constrained tree
-
 
 
 ## Citing
