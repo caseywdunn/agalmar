@@ -1,0 +1,23 @@
+Package: agalmar
+Title: A Collection of Tools for Analyzing Agalma Expression Projects
+Version: 0.0.0.9000
+Date: 2015-06-01
+Authors@R: person("Casey", "Dunn", email = "casey_dunn@brown.edu", role = c("aut", "cre"))
+Description: A Collection of tools for analyzing agalma expression projects. See https://bitbucket.org/caseywdunn/agalma 
+Depends: R (>= 3.2.2)
+License: MIT + file LICENSE
+LazyData: true
+Collate: 
+    'utility_functions.R'
+    'agalmar.R'
+Imports: 
+    hutan,
+    edgeR,
+	seriation,
+	ape
+Suggests: 
+	testthat,
+    roxygen2,
+    devtools,
+    knitr
+VignetteBuilder: knitr
