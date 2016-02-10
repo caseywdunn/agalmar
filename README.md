@@ -10,7 +10,7 @@ from Agalma.
 ## Documentation
 
 See the manual, 
-[agalmar-manual.pdf](https://bitbucket.org/caseywdunn/agalmar/src/master/agalmar-manual.pdf)
+[agalmar-manual.pdf](https://github.com/caseywdunn/agalmar/raw/master/agalmar-manual.pdf)
 
 ## Example usage
 
@@ -29,7 +29,7 @@ To find out how to cite hutan, run the following in R:
 First, install the [devtools](https://github.com/hadley/devtools) package. Then, run the following in R:
 
     library(devtools)
-    install_bitbucket('caseywdunn/agalmar')
+    install_github('caseywdunn/agalmar')
 
 
 ## Development
