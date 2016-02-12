@@ -294,7 +294,7 @@ decompose_orthologs <- function( phy ){
 	# Get their immediate descendants, which define the clades we want to excise
 	to_prune = phy$edge[,2][ phy$edge[,1] %in% duplications ]
 
-	subtrees = decompose( phy, to_prune )
+	subtrees = decompose_tree( phy, to_prune )
 
 	return( subtrees )
 
