@@ -8,6 +8,8 @@ has_species(phy, species)
 }
 \arguments{
 \item{phy}{The tree, as an ape phylo object}
+
+\item{species}{Vector of species names}
 }
 \value{
 logical

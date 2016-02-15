@@ -1,5 +1,5 @@
 # Make S3 style classes available to S4 code
-
+setOldClass(c("DGEList"))
 ################################################################################
 # Classes
 
@@ -7,6 +7,7 @@
 #' 
 #' @param object An Expression object
 #' @return A data frame that summarizes each sample in the experiment
+#' @export
 setGeneric (
 	name = "summary_frame", 
 	def = function( object ) 
@@ -17,6 +18,7 @@ setGeneric (
 #' 
 #' @param object An Expression object
 #' @return Character string with species
+#' @export
 setGeneric (
 	name = "species", 
 	def = function( object ) 
@@ -67,6 +69,7 @@ setClass(
 #' 
 #' @param data_list A list containing the expression data
 #' @return An Expression object
+#' @export
 Expression <- function( data_list ) {
 	object <- new("Expression")
 	
@@ -128,8 +131,8 @@ Expression <- function( data_list ) {
 	object@blast_hit <- object@blast_hit[keep]
 	
 	# Prepare DGE object
-	object@dge <- DGEList( counts=x, group=object@treatments )
-	object@dge <- calcNormFactors( object@dge )
+	object@dge <- edgeR::DGEList( counts=x, group=object@treatments )
+	object@dge <- edgeR::calcNormFactors( object@dge )
 	
 	object
 }
@@ -157,8 +160,9 @@ setMethod("species", signature(object = "Expression"),
 
 #' Get run from Illumina fastq sequence header
 #' 
-#' @param Header character strings
-#' @return Run character strings
+#' @param header character strings
+#' @return run character strings
+#' @export
 get_run <- function( header ) {
 	header <- as.character(header)
 	run <- ''
@@ -179,8 +183,9 @@ get_run <- function( header ) {
 
 #' Get lane from Illumina fastq sequence header
 #' 
-#' @param Header character strings
-#' @return Lane character strings
+#' @param header character strings
+#' @return lane character strings
+#' @export
 get_lane <- function( header ) {
 	header <- as.character(header)
 
@@ -196,9 +201,10 @@ get_lane <- function( header ) {
 #' 
 #' @param tree_text Text representation of a newick tree in newick format.
 #' @return phy The tree, as an ape phylo object
+#' @export
 parse_gene_tree <- function( tree_text ){
 
-	phy <- read.tree( text= tree_text )
+	phy <- ape::read.tree( text= tree_text )
 	return( phy )
 }
 
@@ -208,6 +214,7 @@ parse_gene_tree <- function( tree_text ){
 #' @param node_name A character string of format 'n38047889-N-83', where 'n38047889-N' is 
 #' notung annotation and '83' is node support.
 #' @return Numeric indicating node support
+#' @export
 node_support <- function( node_name ) {
 
 	ns <- NA
@@ -224,6 +231,7 @@ node_support <- function( node_name ) {
 #' 
 #' @param phy The tree, as an ape phylo object. Tip names must have `species@@id` format.
 #' @return Dataframe with one row per tip, a species column, and an id column
+#' @export
 get_tip_info <- function( phy ) {
 	
 	tips <- phy$tip.label
@@ -242,7 +250,9 @@ get_tip_info <- function( phy ) {
 #' Returns true if all species are in the tree tips
 #' 
 #' @param phy The tree, as an ape phylo object
+#' @param species Vector of species names
 #' @return logical
+#' @export
 has_species <- function( phy, species ) {
 
 	psp <- get_tip_info( phy )[,1]
@@ -258,6 +268,7 @@ has_species <- function( phy, species ) {
 #' 
 #' @param dge edgeR DGEList object, to which normalizations have been applied
 #' @return matrix of normalized counts
+#' @export
 apply_normalizations <- function(dge){
 	
 	# Calculate the normalization multipliers, scaled to reads per million
@@ -273,6 +284,8 @@ apply_normalizations <- function(dge){
 #' Plots a matrix
 #' 
 #' @param m The matrix
+#' @param ... additional arguments for image
+#' @export
 plot_matrix <- function(m, ... ) {
 
 	nr <- nrow(m)
@@ -286,6 +299,7 @@ plot_matrix <- function(m, ... ) {
 #' 
 #' @param phy The tree, as an ape phylo object
 #' @return The subtrees as a list of phylo object
+#' @export
 decompose_orthologs <- function( phy ){
 
 	# Identify duplicated nodes 
@@ -294,7 +308,7 @@ decompose_orthologs <- function( phy ){
 	# Get their immediate descendants, which define the clades we want to excise
 	to_prune = phy$edge[,2][ phy$edge[,1] %in% duplications ]
 
-	subtrees = decompose_tree( phy, to_prune )
+	subtrees = hutan::decompose_tree( phy, to_prune )
 
 	return( subtrees )
 

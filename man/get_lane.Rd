@@ -7,10 +7,10 @@
 get_lane(header)
 }
 \arguments{
-\item{Header}{character strings}
+\item{header}{character strings}
 }
 \value{
-Lane character strings
+lane character strings
 }
 \description{
 Get lane from Illumina fastq sequence header

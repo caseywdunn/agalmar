@@ -7,10 +7,10 @@
 get_run(header)
 }
 \arguments{
-\item{Header}{character strings}
+\item{header}{character strings}
 }
 \value{
-Run character strings
+run character strings
 }
 \description{
 Get run from Illumina fastq sequence header

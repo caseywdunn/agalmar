@@ -8,6 +8,8 @@ plot_matrix(m, ...)
 }
 \arguments{
 \item{m}{The matrix}
+
+\item{...}{additional arguments for image}
 }
 \description{
 Plots a matrix
