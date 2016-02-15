@@ -1,5 +1,7 @@
 # agalmar: A Collection of Tools for Analyzing Agalma Expression Projects
 
+[![Build Status](https://travis-ci.org/caseywdunn/agalmar.svg?branch=master)](https://travis-ci.org/caseywdunn/agalmar)
+
 This package contains tools for analyzing phylogenetic and expression projects 
 from [Agalma](https://bitbucket.org/caseywdunn/agalma). The interface between 
 Agalma and agalmar is the json file 
