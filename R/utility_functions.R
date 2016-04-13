@@ -73,8 +73,13 @@ setClass(
 Expression <- function( data_list ) {
 	object <- new("Expression")
 	
-	object@lengths <- data_list$length
 	object@species <- data_list$species
+
+	# Parse the lengths, if present
+	object@lengths <- NA
+	if ( exists( 'length', where=data_list ) ){
+		object@lengths <- data_list$length
+	}
 	
 	# Parse column annotations
 	object@individuals <- as.factor( data_list$individual )
