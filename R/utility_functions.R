@@ -75,11 +75,7 @@ Expression <- function( data_list ) {
 	
 	object@species <- data_list$species
 
-	# Parse the lengths, if present
-	object@lengths <- NA
-	if ( exists( 'length', where=data_list ) ){
-		object@lengths <- data_list$length
-	}
+
 	
 	# Parse column annotations
 	object@individuals <- as.factor( data_list$individual )
@@ -108,6 +104,16 @@ Expression <- function( data_list ) {
 	rownames( x ) <- data_list$gene
 	colnames( x ) <- object@samples
 	
+	# Parse the lengths, if present
+	if ( exists( 'length', where=data_list ) ){
+		object@lengths <- data_list$length
+	} else{
+		empty_lengths <- rep( NA, length(x) )
+		dim( empty_lengths ) <- dim( x )
+		object@lengths <- empty_lengths
+	}
+
+
 	# Calculate total counts, including rRNA
 	totals <- colSums( x )
 	
