@@ -125,7 +125,14 @@ Expression <- function( data_list ) {
 	
 	# Quantify rRNA and identify non ribosomal RNA
 	rrna <- object@molecule_type %in% c('L','S')
-	object@rRNA <- colSums(x[rrna,])/totals
+
+	if ( sum(rrna) == 0 ){
+		object@rRNA <- rep( 0, ncol(x) )
+	} else if ( sum(rrna) == 1 ){
+		object@rRNA <- x[rrna,]/totals
+	} else {
+		object@rRNA <- colSums(x[rrna,])/totals
+	}
 	
 	# Identify protein coding genes
 	protein_coding <- ( object@molecule_type == 'P' )
