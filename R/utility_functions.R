@@ -92,7 +92,13 @@ Expression <- function( data_list ) {
 	# Parse row annotations
 	object@genome_type <- as.factor( data_list$genome_type )
 	object@molecule_type <- as.factor( data_list$molecule_type )
-	object@blast_hit <- data_list$blast_hit
+
+	if ( exists( 'blast_hit', where=data_list ) ){
+		# old name, retained for compatability
+		object@blast_hit <- data_list$blast_hit
+	} else {
+		object@blast_hit <- data_list$blast_title
+	}
 	
 	# Parse counts matrix
 	x <- data_list$count
