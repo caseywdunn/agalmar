@@ -13,3 +13,4 @@ r_github_packages:
 
 bioc_packages:
   - edgeR
+  - ggtree

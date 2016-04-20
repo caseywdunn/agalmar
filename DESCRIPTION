@@ -14,7 +14,8 @@ Collate:
 Imports:
     hutan,
     edgeR,
-    ape (>= 3.3)
+    ape (>= 3.3),
+    ggtree
 Suggests:
     testthat,
     roxygen2,
