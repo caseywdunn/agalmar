@@ -12,7 +12,6 @@ r_github_packages:
 
 bioc_packages:
   - edgeR
-  - EBImage # Required by ggtree
 
 notifications:
   slack: dunnlab:Aqc37nw3FTY4zWIMLH514Ad0
