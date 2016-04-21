@@ -221,15 +221,15 @@ get_lane <- function( header ) {
 }
 
 
-#' Parses newick text to a gene tree
+#' Parses text to a gene tree
 #' 
-#' @param tree_text Text representation of a newick tree in newick format.
+#' @param tree_text Text representation of a tree in nhx format.
 #' @return phy The tree, as an ape phylo object
 #' @export
 parse_gene_tree <- function( tree_text ){
 
-	phy <- ape::read.tree( text= tree_text )
-	return( phy )
+	tree <- ggtree::read.nhx( textConnection( tree_text ) )
+	return( tree )
 }
 
 
