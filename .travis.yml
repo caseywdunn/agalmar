@@ -13,4 +13,5 @@ r_github_packages:
 
 bioc_packages:
   - edgeR
-  -DESeq2
+  - DESeq2
+  
