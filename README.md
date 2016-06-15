@@ -30,7 +30,10 @@ To find out how to cite hutan, run the following in R:
 
 First, install the [devtools](https://github.com/hadley/devtools) package. Then, run the following in R:
 
+    source("https://bioconductor.org/biocLite.R")
+    biocLite("edgeR")
     library(devtools)
+    install_github('caseywdunn/hutan')
     install_github('caseywdunn/agalmar')
 
 
