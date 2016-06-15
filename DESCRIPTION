@@ -14,6 +14,7 @@ Collate:
 Imports:
     hutan,
     edgeR,
+    DESeq2,
     ape (>= 3.3)
 Suggests:
     testthat,
