@@ -16,7 +16,10 @@ See the manual,
 
 ## Example usage
 
+This package comes with a test dataset called `janedoe`. To process 
+it, you can run: 
 
+    e <- lapply(janedoe$expression, Expression)
 
 ## Citing
 

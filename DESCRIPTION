@@ -11,6 +11,7 @@ LazyData: true
 Collate:
     'utility_functions.R'
     'agalmar.R'
+    'data.R'
 Imports:
     hutan,
     edgeR,
