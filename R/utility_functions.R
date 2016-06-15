@@ -154,9 +154,18 @@ Expression <- function( data_list ) {
 	object@molecule_type <- object@molecule_type[keep]
 	object@blast_hit <- object@blast_hit[keep]
 	
-	# Prepare DGE object
-	object@dge <- edgeR::DGEList( counts=x, group=object@treatments )
-	object@dge <- edgeR::calcNormFactors( object@dge )
+	# Prepare EdgeR DGE object
+	object@edgeR <- edgeR::DGEList( counts=x, group=object@treatments )
+	object@edgeR <- edgeR::calcNormFactors( object@dge )
+	
+	# Prepare DESeq2 DGE object
+	colData=data.frame(treatment=data_list$treatment,individual=data_list$individual, row.names=data_list$library_id)
+	
+	dds <- DESeqDataSetFromMatrix(countData = x,
+	                              colData = colData,
+	                              design = ~individual+treatment)
+	
+	object@DESeq2 <- dds[ rowSums(counts(dds)) > 1, ]
 	
 	object
 }
