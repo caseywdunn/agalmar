@@ -48,7 +48,8 @@ setClass(
 	Class = "Expression",
 	representation = representation (
 		species = "character", 
-		dge = "DGEList", 
+		edgeR = "DGEList",
+		DESeq2 = "DESeqDataSet",
 		lengths = "matrix",
 		individuals = "vector",
 		treatments = "vector",
@@ -156,7 +157,7 @@ Expression <- function( data_list ) {
 	
 	# Prepare EdgeR DGE object
 	object@edgeR <- edgeR::DGEList( counts=x, group=object@treatments )
-	object@edgeR <- edgeR::calcNormFactors( object@dge )
+	object@edgeR <- edgeR::calcNormFactors( object@edgeR )
 	
 	# Prepare DESeq2 DGE object
 	colData=data.frame(treatment=data_list$treatment,individual=data_list$individual, row.names=data_list$library_id)
