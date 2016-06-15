@@ -228,7 +228,15 @@ get_lane <- function( header ) {
 #' @export
 parse_gene_tree <- function( tree_text ){
 
-	tree <- ggtree::read.nhx( textConnection( tree_text ) )
+	tree_tc = textConnection( tree_text )
+	tryCatch(
+		tree <- ggtree::read.nhx( tree_tc ),
+		error = function(c){
+			c$message <- paste0(c$message, " (could not parse tree ", tree_text, ")")
+			stop(c)
+		}
+	)
+	close(tree_tc)
 	return( tree )
 }
 
