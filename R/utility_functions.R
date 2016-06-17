@@ -162,11 +162,11 @@ Expression <- function( data_list ) {
 	# Prepare DESeq2 DGE object
 	colData=data.frame(treatment=data_list$treatment,individual=data_list$individual, row.names=data_list$library_id)
 	
-	dds <- DESeqDataSetFromMatrix(countData = floor(x),
+	dds <- DESeq2::DESeqDataSetFromMatrix(countData = floor(x),
 	                              colData = colData,
 	                              design = ~individual+treatment)
 	
-	object@DESeq2 <- dds[ rowSums(counts(dds)) > 1, ]
+	object@DESeq2 <- dds[ rowSums(DESeq2::counts(dds)) > 1, ]
 	
 	object
 }
