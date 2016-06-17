@@ -1,5 +1,6 @@
 # Make S3 style classes available to S4 code
-setOldClass(c("DGEList, DESeqDataSet"))
+setOldClass(c("DGEList"))
+
 ################################################################################
 # Classes
 
