@@ -173,6 +173,11 @@ Expression <- function( data_list ) {
 }
 
 
+#' Create a summary table.
+#' 
+#' @param object An Expression object
+#' @return A data frame
+#' @export
 setMethod("summary_frame", signature(object = "Expression"),
 	function(object) {
 		sample_summary <- data.frame(Species=rep(object@species, length(object@samples)), Individuals=object@individuals, Treatments=object@treatments, Samples=object@samples, Preparation=object@sample_prep, rRNA=object@rRNA, Protein=object@protein, Reads=colSums(object@dge$counts), Run=as.factor(sapply(object@id, get_run)), Lane=as.factor(sapply(object@id, get_lane)))
@@ -181,7 +186,11 @@ setMethod("summary_frame", signature(object = "Expression"),
 	}
 )
 
-
+#' Get the species
+#' 
+#' @param object An Expression object
+#' @return Species name
+#' @export
 setMethod("species", signature(object = "Expression"),
 	function(object) {
 				
