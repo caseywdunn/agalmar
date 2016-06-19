@@ -45,6 +45,7 @@ setGeneric (
 #' @slot blast_hit  Blast hit. Length g.
 #' @slot rRNA  Fraction of reads in sample that are rRNA. Length s.
 #' @slot protein  Fraction of reads in sample that are protein coding. Length s.
+#' @importClassesFrom DESeq2 DESeqDataSet
 setClass(
 	Class = "Expression",
 	representation = representation (
