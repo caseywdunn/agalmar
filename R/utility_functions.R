@@ -190,7 +190,7 @@ Expression <- function( data_list ) {
 #' @export
 setMethod("summary_frame", signature(object = "Expression"),
 	function(object) {
-		sample_summary <- data.frame(Species=rep(object@species, length(object@samples)), Individuals=object@individuals, Treatments=object@treatments, Samples=object@samples, Preparation=object@sample_prep, rRNA=object@rRNA, Protein=object@protein, Reads=colSums(object@dge$counts), Run=as.factor(sapply(object@id, get_run)), Lane=as.factor(sapply(object@id, get_lane)))
+		sample_summary <- data.frame(Species=rep(object@species, length(object@samples)), Individuals=object@individuals, Treatments=object@treatments, Samples=object@samples, Preparation=object@sample_prep, rRNA=object@rRNA, Protein=object@protein, Reads=colSums(object@edgeR$counts), Run=as.factor(sapply(object@id, get_run)), Lane=as.factor(sapply(object@id, get_lane)))
 		
 		return( sample_summary )
 	}
