@@ -42,5 +42,7 @@ matrix of dimension g,s.}
 \item{\code{rRNA}}{Fraction of reads in sample that are rRNA. Length s.}
 
 \item{\code{protein}}{Fraction of reads in sample that are protein coding. Length s.}
+
+\item{\code{x}}{The counts matrix}
 }}
 

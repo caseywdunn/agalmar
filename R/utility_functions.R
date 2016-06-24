@@ -26,6 +26,20 @@ setGeneric (
 		{ standardGeneric("species") }
 )
 
+
+#' Creates a DESeqDataSet object
+#' 
+#' @param object An Expression object
+#' @param design a formula that explains the project design 
+#' @return A DESeqDataSet object
+#' @export
+setGeneric (
+	name = "create_DESeq2", 
+	def = function( object, design ) 
+		{ standardGeneric("create_DESeq2") }
+)
+
+
 #' An S4 class to represent gene expression data for multiple samples
 #' for a given species. Assumes that all expession data are derived 
 #' from mapping to the same reference. Applies to data for g genes
@@ -45,13 +59,13 @@ setGeneric (
 #' @slot blast_hit  Blast hit. Length g.
 #' @slot rRNA  Fraction of reads in sample that are rRNA. Length s.
 #' @slot protein  Fraction of reads in sample that are protein coding. Length s.
+#' @slot x The counts matrix
 #' @importClassesFrom DESeq2 DESeqDataSet
 setClass(
 	Class = "Expression",
 	representation = representation (
 		species = "character", 
 		edgeR = "DGEList",
-		DESeq2 = "DESeqDataSet",
 		lengths = "matrix",
 		individuals = "vector",
 		treatments = "vector",
@@ -62,7 +76,8 @@ setClass(
 		molecule_type = "vector",
 		blast_hit =  "vector",
 		rRNA = "vector",
-		protein = "vector"
+		protein = "vector",
+		x = "matrix"
 	)
 )
 
@@ -157,18 +172,12 @@ Expression <- function( data_list ) {
 	object@molecule_type <- object@molecule_type[keep]
 	object@blast_hit <- object@blast_hit[keep]
 	
+	# Store the counts
+	object@x <- x
+
 	# Prepare EdgeR DGE object
 	object@edgeR <- edgeR::DGEList( counts=x, group=object@treatments )
 	object@edgeR <- edgeR::calcNormFactors( object@edgeR )
-	
-	# Prepare DESeq2 DGE object
-	colData=data.frame(treatment=data_list$treatment,individual=data_list$individual, row.names=data_list$library_id)
-	
-	dds <- DESeq2::DESeqDataSetFromMatrix(countData = floor(x),
-	                              colData = colData,
-	                              design = ~individual+treatment)
-	
-	object@DESeq2 <- dds[ rowSums(DESeq2::counts(dds)) > 1, ]
 	
 	object
 }
@@ -198,6 +207,27 @@ setMethod("species", signature(object = "Expression"),
 		return( object@species )
 	}
 )
+
+
+#' Creates a DESeqDataSet object
+#' 
+#' @param object An Expression object
+#' @param design a formula that explains the project design 
+#' @return A DESeqDataSet object
+#' @export
+setMethod("create_DESeq2", signature(object = "Expression", design = "formula" ),
+	function(object, design) {
+
+		colData=data.frame(treatments=object@treatments,individuals=object@individuals, row.names=object@samples)
+
+		dds <- DESeq2::DESeqDataSetFromMatrix(countData = floor(object@x),
+	                              colData = colData,
+	                              design = design)
+	
+		return( dds[ rowSums(DESeq2::counts(dds)) > 1, ] )
+	}
+)
+
 
 
 ################################################################################
