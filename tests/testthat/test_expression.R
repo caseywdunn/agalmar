@@ -18,3 +18,7 @@ test_that("number of genes in edgeR input equal 398", {
 })
 
 
+context("summary_frame")
+test_that("can construct a summary_frame", {
+	expect_equal(nrow(summary_frame(e[[1]])), 14)
+})

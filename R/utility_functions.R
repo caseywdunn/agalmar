@@ -192,8 +192,15 @@ Expression <- function( data_list ) {
 #' @export
 setMethod("summary_frame", signature(object = "Expression"),
 	function(object) {
-		sample_summary <- data.frame(Species=rep(object@species, length(object@library_id)), Individual=object@individual, Treatment=object@treatment, Library=object@library_id, Preparation=object@sample_prep, rRNA=object@rRNA, Protein=object@protein, Reads=colSums(object@edgeR$counts), Run=as.factor(sapply(object@id, get_run)), Lane=as.factor(sapply(object@id, get_lane)))
-		
+
+		# Some json files do not have an id field, need some logic to accommodate this when constructing hte table
+		if ( length(object@id) < 1 ){
+			sample_summary <- data.frame(Species=rep(object@species, length(object@library_id)), Individual=object@individual, Treatment=object@treatment, Library=object@library_id, Preparation=object@sample_prep, rRNA=object@rRNA, Protein=object@protein, Reads=colSums(object@edgeR$counts))
+		}
+		else{
+			sample_summary <- data.frame(Species=rep(object@species, length(object@library_id)), Individual=object@individual, Treatment=object@treatment, Library=object@library_id, Preparation=object@sample_prep, rRNA=object@rRNA, Protein=object@protein, Reads=colSums(object@edgeR$counts), Run=as.factor(sapply(object@id, get_run)), Lane=as.factor(sapply(object@id, get_lane)))
+		}
+
 		return( sample_summary )
 	}
 )
