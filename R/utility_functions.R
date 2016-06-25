@@ -43,16 +43,18 @@ setGeneric (
 #' An S4 class to represent gene expression data for multiple samples
 #' for a given species. Assumes that all expession data are derived 
 #' from mapping to the same reference. Applies to data for g genes
-#' across s samples.
+#' across s samples (ie, sequenced libraries).
+#'
+#' The fields that apply to the s samples correspond to those 
 #'
 #' @slot species  The species
-#' @slot dge  an edgeR DGEList object holding data for all samples. Expression
+#' @slot edgeR  An edgeR DGEList object holding data for all samples. Expression
 #' matrix of dimension g,s.
 #' @slot lengths  Summary of length, in bp, of transctipts for each gene. Length g.
-#' @slot individuals  Factors indicating which individual each sample is from. Length s.
-#' @slot treatments  Factors indicating which treatment applies to each sample. Length s.
-#' @slot id  Factors indicating the unique id of each sample. Length s.
-#' @slot samples  Factors indicating the unique library id of each sample. Length s.
+#' @slot individual  Factors indicating which individual each sample is from. Length s.
+#' @slot treatment  Factors indicating which treatment applies to each sample. Length s.
+#' @slot id  Factors indicating the unique sequencing run id of each sample, eg HWI-ST625-75-D0PBDACXX-6-ATCACG. Length s.
+#' @slot library_id  Factors indicating the unique library id of each sample, eg FEG365. Length s.
 #' @slot sample_prep  Sample prep strategy. Length s.
 #' @slot genome_type  Character indicating genome type, eg nuclear. See agalma documentation. Length g.
 #' @slot molecule_type  Character indicating encoded molecule type, eg protein. See agalma documentation. Length g.
@@ -67,10 +69,10 @@ setClass(
 		species = "character", 
 		edgeR = "DGEList",
 		lengths = "matrix",
-		individuals = "vector",
-		treatments = "vector",
+		individual = "vector",
+		treatment = "vector",
 		id = "vector",
-		samples = "vector",
+		library_id = "vector",
 		sample_prep = "vector",
 		genome_type = "vector",
 		molecule_type = "vector",
@@ -96,10 +98,10 @@ Expression <- function( data_list ) {
 
 	
 	# Parse column annotations
-	object@individuals <- as.factor( data_list$individual )
-	object@treatments  <- as.factor( data_list$treatment )
+	object@individual <- as.factor( data_list$individual )
+	object@treatment  <- as.factor( data_list$treatment )
 	object@id  <- as.factor( data_list$id )
-	object@samples <- as.factor( data_list$library_id )
+	object@library_id <- as.factor( data_list$library_id )
 	object@sample_prep <- data_list$sample_prep
 	
 	# Simplify sample prep names
@@ -126,7 +128,7 @@ Expression <- function( data_list ) {
 		dim( x ) <- c( length(x), 1 )
 	}
 	rownames( x ) <- data_list$gene
-	colnames( x ) <- object@samples
+	colnames( x ) <- object@library_id
 	
 	# Parse the lengths, if present
 	if ( exists( 'length', where=data_list ) ){
@@ -176,7 +178,7 @@ Expression <- function( data_list ) {
 	object@x <- x
 
 	# Prepare EdgeR DGE object
-	object@edgeR <- edgeR::DGEList( counts=x, group=object@treatments )
+	object@edgeR <- edgeR::DGEList( counts=x, group=object@treatment )
 	object@edgeR <- edgeR::calcNormFactors( object@edgeR )
 	
 	object
@@ -190,7 +192,7 @@ Expression <- function( data_list ) {
 #' @export
 setMethod("summary_frame", signature(object = "Expression"),
 	function(object) {
-		sample_summary <- data.frame(Species=rep(object@species, length(object@samples)), Individuals=object@individuals, Treatments=object@treatments, Samples=object@samples, Preparation=object@sample_prep, rRNA=object@rRNA, Protein=object@protein, Reads=colSums(object@edgeR$counts), Run=as.factor(sapply(object@id, get_run)), Lane=as.factor(sapply(object@id, get_lane)))
+		sample_summary <- data.frame(Species=rep(object@species, length(object@library_id)), Individual=object@individual, Treatment=object@treatment, Library=object@library_id, Preparation=object@sample_prep, rRNA=object@rRNA, Protein=object@protein, Reads=colSums(object@edgeR$counts), Run=as.factor(sapply(object@id, get_run)), Lane=as.factor(sapply(object@id, get_lane)))
 		
 		return( sample_summary )
 	}
@@ -218,7 +220,7 @@ setMethod("species", signature(object = "Expression"),
 setMethod("create_DESeq2", signature(object = "Expression", design = "formula" ),
 	function(object, design) {
 
-		colData=data.frame(treatments=object@treatments,individuals=object@individuals, row.names=object@samples)
+		colData=data.frame(treatment=object@treatment,individual=object@individual, row.names=object@library_id)
 
 		dds <- DESeq2::DESeqDataSetFromMatrix(countData = floor(object@x),
 	                              colData = colData,
