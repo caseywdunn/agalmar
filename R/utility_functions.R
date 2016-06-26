@@ -178,6 +178,25 @@ Expression <- function( data_list ) {
 	object@edgeR <- edgeR::DGEList( counts=object@x, group=object@treatment )
 	object@edgeR <- edgeR::calcNormFactors( object@edgeR )
 	
+	g = nrow( object@x )
+	s = ncol( object@x )
+
+	stopifnot(  
+
+		length( object@individual )    == s,
+		length( object@treatment )     == s,
+		# length( id ) ==  s, # not present in all jsons
+		length( object@library_id )    == s,
+		length( object@sample_prep )   == s,
+		length( object@genome_type )   == g,
+		length( object@molecule_type ) == g,
+		length( object@blast_hit )     == g,
+		length( object@rRNA )          == s,
+		length( object@protein )       == s
+
+	)
+
+
 	object
 }
 
