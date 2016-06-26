@@ -121,45 +121,45 @@ Expression <- function( data_list ) {
 	}
 	
 	# Parse counts matrix
-	x <- data_list$count
-	if ( is.null( dim(x) ) ){
+	object@x <- data_list$count
+	if ( is.null( dim(object@x) ) ){
 		# if there is a single samply, then x is a vector rather than an array, 
 		# which messes things up for row sampling later
-		dim( x ) <- c( length(x), 1 )
+		dim( object@x ) <- c( length(object@x), 1 )
 	}
-	rownames( x ) <- data_list$gene
-	colnames( x ) <- object@library_id
+	rownames( object@x ) <- data_list$gene
+	colnames( object@x ) <- object@library_id
 	
 	# Parse the lengths, if present
 	if ( exists( 'length', where=data_list ) ){
 		object@lengths <- data_list$length
 	} else{
-		empty_lengths <- rep( NA, length(x) )
-		dim( empty_lengths ) <- dim( x )
+		empty_lengths <- rep( NA, length(object@x) )
+		dim( empty_lengths ) <- dim( object@x )
 		object@lengths <- empty_lengths
 	}
 
 
 	# Calculate total counts, including rRNA
-	totals <- colSums( x )
+	totals <- colSums( object@x )
 	
 	# Quantify rRNA and identify non ribosomal RNA
 	rrna <- object@molecule_type %in% c('L','S')
 
 	if ( sum(rrna) == 0 ){
-		object@rRNA <- rep( 0, ncol(x) )
+		object@rRNA <- rep( 0, ncol(object@x) )
 	} else if ( sum(rrna) == 1 ){
-		object@rRNA <- x[rrna,]/totals
+		object@rRNA <- object@x[rrna,]/totals
 	} else {
-		object@rRNA <- colSums(x[rrna,])/totals
+		object@rRNA <- colSums(object@x[rrna,])/totals
 	}
 	
 	# Identify protein coding genes
 	protein_coding <- ( object@molecule_type == 'P' )
-	object@protein <- colSums(x[protein_coding,])/totals
+	object@protein <- colSums(object@x[protein_coding,])/totals
 
 	# Identify rows that have at last 2 libraries with count greater than 0
-	passes_sampling_criterion <- rowSums(x > 0) > 2
+	passes_sampling_criterion <- rowSums(object@x > 0) > 2
 
 	# Exclude plastid genomes
 	genome_keep <- (object@genome_type != 'P') & (object@genome_type != 'M')
@@ -168,17 +168,14 @@ Expression <- function( data_list ) {
 	keep <- protein_coding & genome_keep & passes_sampling_criterion
 	
 	# Subsample matrix and row annotations
-	x <- x[keep,]
+	object@x <- object@x[keep,]
 	object@lengths <- object@lengths[keep,]
 	object@genome_type <- object@genome_type[keep]
 	object@molecule_type <- object@molecule_type[keep]
 	object@blast_hit <- object@blast_hit[keep]
-	
-	# Store the counts
-	object@x <- x
 
 	# Prepare EdgeR DGE object
-	object@edgeR <- edgeR::DGEList( counts=x, group=object@treatment )
+	object@edgeR <- edgeR::DGEList( counts=object@x, group=object@treatment )
 	object@edgeR <- edgeR::calcNormFactors( object@edgeR )
 	
 	object
