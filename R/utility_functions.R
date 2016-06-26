@@ -4,16 +4,32 @@ setOldClass(c("DGEList"))
 ################################################################################
 # Classes
 
-#' Summarize experiment.
+#' Summarize expression libraries
 #' 
 #' @param object An Expression object
-#' @return A data frame that summarizes each sample in the experiment
+#' @return A data frame that summarizes each library with expression data in the
+#' Expression object
 #' @export
 setGeneric (
-	name = "summary_frame", 
+	name = "summarize_libraries", 
 	def = function( object ) 
-		{ standardGeneric("summary_frame") }
+		{ standardGeneric("summarize_libraries") }
 )
+
+
+#' Summarize reference sequences
+#' 
+#' @param object An Expression object
+#' @return A data frame that summarizes the reference sequences in the
+#' Expression object
+#' @export
+setGeneric (
+	name = "summarize_reference", 
+	def = function( object ) 
+		{ standardGeneric("summarize_reference") }
+)
+
+
 
 #' Get species
 #' 
@@ -201,23 +217,64 @@ Expression <- function( data_list ) {
 }
 
 
-#' Create a summary table.
+#' Summarize expression libraries
 #' 
 #' @param object An Expression object
-#' @return A data frame
+#' @return A data frame that summarizes each library with expression data in the
+#' Expression object
 #' @export
-setMethod("summary_frame", signature(object = "Expression"),
+setMethod("summarize_libraries", signature(object = "Expression"),
 	function(object) {
 
 		# Some json files do not have an id field, need some logic to accommodate this when constructing hte table
 		if ( length(object@id) < 1 ){
-			sample_summary <- data.frame(Species=rep(object@species, length(object@library_id)), Individual=object@individual, Treatment=object@treatment, Library=object@library_id, Preparation=object@sample_prep, rRNA=object@rRNA, Protein=object@protein, Reads=colSums(object@edgeR$counts))
+			library_summary <- data.frame( 
+				Species=rep(object@species, length(object@library_id)), 
+				Individual=object@individual, 
+				Treatment=object@treatment, 
+				Library=object@library_id, 
+				Preparation=object@sample_prep, 
+				rRNA=object@rRNA, 
+				Protein=object@protein, 
+				Reads=colSums(object@edgeR$counts)
+			)
 		}
 		else{
-			sample_summary <- data.frame(Species=rep(object@species, length(object@library_id)), Individual=object@individual, Treatment=object@treatment, Library=object@library_id, Preparation=object@sample_prep, rRNA=object@rRNA, Protein=object@protein, Reads=colSums(object@edgeR$counts), Run=as.factor(sapply(object@id, get_run)), Lane=as.factor(sapply(object@id, get_lane)))
+			library_summary <- data.frame(
+				Species=rep(object@species, length(object@library_id)), 
+				Individual=object@individual, 
+				Treatment=object@treatment, 
+				Library=object@library_id, 
+				Preparation=object@sample_prep, 
+				rRNA=object@rRNA, 
+				Protein=object@protein, 
+				Reads=colSums(object@edgeR$counts), 
+				Run=as.factor(sapply(object@id, get_run)), 
+				Lane=as.factor(sapply(object@id, get_lane))
+			)
 		}
 
-		return( sample_summary )
+		return( library_summary )
+	}
+)
+
+
+#' Summarize reference sequences
+#' 
+#' @param object An Expression object
+#' @return A data frame that summarizes the reference sequences in the
+#' Expression object
+#' @export
+setMethod("summarize_reference", signature(object = "Expression"),
+	function(object) {
+
+		reference_summary = data.frame(
+			Species = object@species,
+			Genes = nrow( object@x )
+
+		)
+
+		return( reference_summary )
 	}
 )
 
