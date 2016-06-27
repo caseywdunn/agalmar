@@ -470,3 +470,34 @@ decompose_orthologs <- function( phy ){
 	return( subtrees )
 
 }
+
+
+#' Create a data frame with summary statistics for expression
+#' libraries
+#' 
+#' @param e A list of Expression objects
+#' @return A data frame of summary statistics
+#' @export
+summary_libraries <- function( e ){
+
+	library_summary <- plyr::ldply( lapply( e, summarize_libraries ) )[,-1]
+	library_summary <- library_summary[with(library_summary, order(Species, Individual, Treatment)), ]
+	library_summary$Species <- sub("^(\\w)\\w+", "\\1.", library_summary$Species, perl=TRUE) # Shorten species names
+
+	return( library_summary )
+}
+
+#' Create a data frame with summary statistics for reference sequences
+#' 
+#' @param e A list of Expression objects
+#' @return A data frame of summary statistics
+#' @export
+summary_references <- function( e ){
+	reference_summary <- plyr::ldply( lapply( e, summarize_reference ) )[,-1]
+	reference_summary$Species <- sub("^(\\w)\\w+", "\\1.", reference_summary$Species, perl=TRUE) # Shorten species names
+
+	return( reference_summary )
+
+
+}
+

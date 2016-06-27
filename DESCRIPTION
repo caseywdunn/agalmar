@@ -16,7 +16,8 @@ Imports:
     hutan,
     edgeR,
     DESeq2,
-    ape (>= 3.3)
+    ape (>= 3.3),
+    plyr
 Suggests:
     testthat,
     roxygen2,
