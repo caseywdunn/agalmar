@@ -2,17 +2,17 @@
 % Please edit documentation in R/utility_functions.R
 \name{parse_gene_tree}
 \alias{parse_gene_tree}
-\title{Parses newick text to a gene tree}
+\title{Parses text to a gene tree}
 \usage{
 parse_gene_tree(tree_text)
 }
 \arguments{
-\item{tree_text}{Text representation of a newick tree in newick format.}
+\item{tree_text}{Text representation of a tree in nhx format.}
 }
 \value{
 phy The tree, as an ape phylo object
 }
 \description{
-Parses newick text to a gene tree
+Parses text to a gene tree
 }
 

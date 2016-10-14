@@ -21,6 +21,8 @@ test_that("tree is decomposed into orthologs based on notung node names", {
 	nhx = parse_gene_tree( test_notung_newick_text )
 	decomposed = decompose_orthologs(nhx)
 	expect_equal( length(decomposed), 14 ) # haven't checked that it should be 14
+	# ggtree(nhx) + geom_tiplab() + geom_point(aes(color=D), size=5, alpha=.5) + theme(legend.position="right")
+
 
 	# Check that all tips in the original tree are in the final trees
 	decomposed_tips = unlist( lapply( decomposed, function(x) x$tip.label ) )

@@ -5,13 +5,13 @@
 \title{Decomposes a gene tree into a list of subtrees that have no duplication events. Assumes notung
 style node annotations.}
 \usage{
-decompose_orthologs(phy)
+decompose_orthologs(nhx)
 }
 \arguments{
-\item{phy}{The tree, as an ape phylo object}
+\item{nhx}{The tree, as a ggtree nhx object}
 }
 \value{
-The subtrees as a list of phylo object
+The subtrees as a list of ape::phylo object
 }
 \description{
 Decomposes a gene tree into a list of subtrees that have no duplication events. Assumes notung
