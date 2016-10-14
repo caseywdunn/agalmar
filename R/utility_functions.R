@@ -329,13 +329,20 @@ plot_matrix <- function(m, ... ) {
 #' Decomposes a gene tree into a list of subtrees that have no duplication events. Assumes notung
 #' style node annotations.
 #' 
-#' @param phy The tree, as an ape phylo object
-#' @return The subtrees as a list of phylo object
+#' @param nhx The tree, as a ggtree nhx object
+#' @return The subtrees as a list of ape::phylo object
 #' @export
-decompose_orthologs <- function( phy ){
+decompose_orthologs <- function( nhx ){
+
+	Annotations = nhx@nhx_tags
+
+	# Annotations are not necessarilly ordered by node, so order them here
+	Annotations = Annotations[ order(Annotations$node, na.last=FALSE), ]
 
 	# Identify duplicated nodes 
-	duplications = grep( "-Y", phy$node.label ) + length( phy$tip.label )
+	duplications = which( Annotations$D == "Y" )
+
+	phy = nhx@phylo
 
 	# Get their immediate descendants, which define the clades we want to excise
 	to_prune = phy$edge[,2][ phy$edge[,1] %in% duplications ]
