@@ -12,6 +12,7 @@ r_github_packages:
 bioc_packages:
   - edgeR
   - ggtree
+  - DESeq2
 
 notifications:
   slack: dunnlab:Aqc37nw3FTY4zWIMLH514Ad0

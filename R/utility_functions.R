@@ -1,18 +1,35 @@
 # Make S3 style classes available to S4 code
 setOldClass(c("DGEList"))
+
 ################################################################################
 # Classes
 
-#' Summarize experiment.
+#' Summarize expression libraries
 #' 
 #' @param object An Expression object
-#' @return A data frame that summarizes each sample in the experiment
+#' @return A data frame that summarizes each library with expression data in the
+#' Expression object
 #' @export
 setGeneric (
-	name = "summary_frame", 
+	name = "summarize_libraries", 
 	def = function( object ) 
-		{ standardGeneric("summary_frame") }
+		{ standardGeneric("summarize_libraries") }
 )
+
+
+#' Summarize reference sequences
+#' 
+#' @param object An Expression object
+#' @return A data frame that summarizes the reference sequences in the
+#' Expression object
+#' @export
+setGeneric (
+	name = "summarize_reference", 
+	def = function( object ) 
+		{ standardGeneric("summarize_reference") }
+)
+
+
 
 #' Get species
 #' 
@@ -25,41 +42,60 @@ setGeneric (
 		{ standardGeneric("species") }
 )
 
+
+#' Creates a DESeqDataSet object
+#' 
+#' @param object An Expression object
+#' @param design a formula that explains the project design 
+#' @return A DESeqDataSet object
+#' @export
+setGeneric (
+	name = "create_DESeq2", 
+	def = function( object, design ) 
+		{ standardGeneric("create_DESeq2") }
+)
+
+
 #' An S4 class to represent gene expression data for multiple samples
 #' for a given species. Assumes that all expession data are derived 
 #' from mapping to the same reference. Applies to data for g genes
-#' across s samples.
+#' across s samples (ie, sequenced libraries).
+#'
+#' The fields that apply to the s samples correspond to those 
 #'
 #' @slot species  The species
-#' @slot dge  an edgeR DGEList object holding data for all samples. Expression
+#' @slot edgeR  An edgeR DGEList object holding data for all samples. Expression
 #' matrix of dimension g,s.
 #' @slot lengths  Summary of length, in bp, of transctipts for each gene. Length g.
-#' @slot individuals  Factors indicating which individual each sample is from. Length s.
-#' @slot treatments  Factors indicating which treatment applies to each sample. Length s.
-#' @slot id  Factors indicating the unique id of each sample. Length s.
-#' @slot samples  Factors indicating the unique library id of each sample. Length s.
+#' @slot individual  Factors indicating which individual each sample is from. Length s.
+#' @slot treatment  Factors indicating which treatment applies to each sample. Length s.
+#' @slot id  Factors indicating the unique sequencing run id of each sample, eg HWI-ST625-75-D0PBDACXX-6-ATCACG. Length s.
+#' @slot library_id  Factors indicating the unique library id of each sample, eg FEG365. Length s.
 #' @slot sample_prep  Sample prep strategy. Length s.
 #' @slot genome_type  Character indicating genome type, eg nuclear. See agalma documentation. Length g.
 #' @slot molecule_type  Character indicating encoded molecule type, eg protein. See agalma documentation. Length g.
 #' @slot blast_hit  Blast hit. Length g.
 #' @slot rRNA  Fraction of reads in sample that are rRNA. Length s.
 #' @slot protein  Fraction of reads in sample that are protein coding. Length s.
+#' @slot x The counts matrix
+#' @importClassesFrom DESeq2 DESeqDataSet
 setClass(
 	Class = "Expression",
 	representation = representation (
 		species = "character", 
-		dge = "DGEList", 
+		edgeR = "DGEList",
 		lengths = "matrix",
-		individuals = "vector",
-		treatments = "vector",
+		individual = "vector",
+		treatment = "vector",
 		id = "vector",
-		samples = "vector",
+		library_id = "vector",
 		sample_prep = "vector",
 		genome_type = "vector",
 		molecule_type = "vector",
 		blast_hit =  "vector",
 		rRNA = "vector",
-		protein = "vector"
+		protein = "vector",
+		x = "matrix"
 	)
 )
 
@@ -78,10 +114,10 @@ Expression <- function( data_list ) {
 
 	
 	# Parse column annotations
-	object@individuals <- as.factor( data_list$individual )
-	object@treatments  <- as.factor( data_list$treatment )
+	object@individual <- as.factor( data_list$individual )
+	object@treatment  <- as.factor( data_list$treatment )
 	object@id  <- as.factor( data_list$id )
-	object@samples <- as.factor( data_list$library_id )
+	object@library_id <- as.factor( data_list$library_id )
 	object@sample_prep <- data_list$sample_prep
 	
 	# Simplify sample prep names
@@ -101,45 +137,45 @@ Expression <- function( data_list ) {
 	}
 	
 	# Parse counts matrix
-	x <- data_list$count
-	if ( is.null( dim(x) ) ){
+	object@x <- data_list$count
+	if ( is.null( dim(object@x) ) ){
 		# if there is a single samply, then x is a vector rather than an array, 
 		# which messes things up for row sampling later
-		dim( x ) <- c( length(x), 1 )
+		dim( object@x ) <- c( length(object@x), 1 )
 	}
-	rownames( x ) <- data_list$gene
-	colnames( x ) <- object@samples
+	rownames( object@x ) <- data_list$gene
+	colnames( object@x ) <- object@library_id
 	
 	# Parse the lengths, if present
 	if ( exists( 'length', where=data_list ) ){
 		object@lengths <- data_list$length
 	} else{
-		empty_lengths <- rep( NA, length(x) )
-		dim( empty_lengths ) <- dim( x )
+		empty_lengths <- rep( NA, length(object@x) )
+		dim( empty_lengths ) <- dim( object@x )
 		object@lengths <- empty_lengths
 	}
 
 
 	# Calculate total counts, including rRNA
-	totals <- colSums( x )
+	totals <- colSums( object@x )
 	
 	# Quantify rRNA and identify non ribosomal RNA
 	rrna <- object@molecule_type %in% c('L','S')
 
 	if ( sum(rrna) == 0 ){
-		object@rRNA <- rep( 0, ncol(x) )
+		object@rRNA <- rep( 0, ncol(object@x) )
 	} else if ( sum(rrna) == 1 ){
-		object@rRNA <- x[rrna,]/totals
+		object@rRNA <- object@x[rrna,]/totals
 	} else {
-		object@rRNA <- colSums(x[rrna,])/totals
+		object@rRNA <- colSums(object@x[rrna,])/totals
 	}
 	
 	# Identify protein coding genes
 	protein_coding <- ( object@molecule_type == 'P' )
-	object@protein <- colSums(x[protein_coding,])/totals
+	object@protein <- colSums(object@x[protein_coding,])/totals
 
 	# Identify rows that have at last 2 libraries with count greater than 0
-	passes_sampling_criterion <- rowSums(x > 0) > 2
+	passes_sampling_criterion <- rowSums(object@x > 0) > 2
 
 	# Exclude plastid genomes
 	genome_keep <- (object@genome_type != 'P') & (object@genome_type != 'M')
@@ -148,35 +184,132 @@ Expression <- function( data_list ) {
 	keep <- protein_coding & genome_keep & passes_sampling_criterion
 	
 	# Subsample matrix and row annotations
-	x <- x[keep,]
+	object@x <- object@x[keep,]
 	object@lengths <- object@lengths[keep,]
 	object@genome_type <- object@genome_type[keep]
 	object@molecule_type <- object@molecule_type[keep]
 	object@blast_hit <- object@blast_hit[keep]
+
+	# Prepare EdgeR DGE object
+	object@edgeR <- edgeR::DGEList( counts=object@x, group=object@treatment )
+	object@edgeR <- edgeR::calcNormFactors( object@edgeR )
 	
-	# Prepare DGE object
-	object@dge <- edgeR::DGEList( counts=x, group=object@treatments )
-	object@dge <- edgeR::calcNormFactors( object@dge )
-	
+	g = nrow( object@x )
+	s = ncol( object@x )
+
+	stopifnot(  
+
+		length( object@individual )    == s,
+		length( object@treatment )     == s,
+		# length( id ) ==  s, # not present in all jsons
+		length( object@library_id )    == s,
+		length( object@sample_prep )   == s,
+		length( object@genome_type )   == g,
+		length( object@molecule_type ) == g,
+		length( object@blast_hit )     == g,
+		length( object@rRNA )          == s,
+		length( object@protein )       == s
+
+	)
+
+
 	object
 }
 
 
-setMethod("summary_frame", signature(object = "Expression"),
+#' Summarize expression libraries
+#' 
+#' @param object An Expression object
+#' @return A data frame that summarizes each library with expression data in the
+#' Expression object
+#' @export
+setMethod("summarize_libraries", signature(object = "Expression"),
 	function(object) {
-		sample_summary <- data.frame(Species=rep(object@species, length(object@samples)), Individuals=object@individuals, Treatments=object@treatments, Samples=object@samples, Preparation=object@sample_prep, rRNA=object@rRNA, Protein=object@protein, Reads=colSums(object@dge$counts), Run=as.factor(sapply(object@id, get_run)), Lane=as.factor(sapply(object@id, get_lane)))
-		
-		return( sample_summary )
+
+		# Some json files do not have an id field, need some logic to accommodate this when constructing hte table
+		if ( length(object@id) < 1 ){
+			library_summary <- data.frame( 
+				Species=rep(object@species, length(object@library_id)), 
+				Individual=object@individual, 
+				Treatment=object@treatment, 
+				Library=object@library_id, 
+				Preparation=object@sample_prep, 
+				rRNA=object@rRNA, 
+				Protein=object@protein, 
+				Reads=colSums(object@edgeR$counts)
+			)
+		}
+		else{
+			library_summary <- data.frame(
+				Species=rep(object@species, length(object@library_id)), 
+				Individual=object@individual, 
+				Treatment=object@treatment, 
+				Library=object@library_id, 
+				Preparation=object@sample_prep, 
+				rRNA=object@rRNA, 
+				Protein=object@protein, 
+				Reads=colSums(object@edgeR$counts), 
+				Run=as.factor(sapply(object@id, get_run)), 
+				Lane=as.factor(sapply(object@id, get_lane))
+			)
+		}
+
+		return( library_summary )
 	}
 )
 
 
+#' Summarize reference sequences
+#' 
+#' @param object An Expression object
+#' @return A data frame that summarizes the reference sequences in the
+#' Expression object
+#' @export
+setMethod("summarize_reference", signature(object = "Expression"),
+	function(object) {
+
+		reference_summary = data.frame(
+			Species = object@species,
+			Genes = nrow( object@x )
+
+		)
+
+		return( reference_summary )
+	}
+)
+
+#' Get the species
+#' 
+#' @param object An Expression object
+#' @return Species name
+#' @export
 setMethod("species", signature(object = "Expression"),
 	function(object) {
 				
 		return( object@species )
 	}
 )
+
+
+#' Creates a DESeqDataSet object
+#' 
+#' @param object An Expression object
+#' @param design a formula that explains the project design 
+#' @return A DESeqDataSet object
+#' @export
+setMethod("create_DESeq2", signature(object = "Expression", design = "formula" ),
+	function(object, design) {
+
+		colData=data.frame(treatment=object@treatment,individual=object@individual, row.names=object@library_id)
+
+		dds <- DESeq2::DESeqDataSetFromMatrix(countData = floor(object@x),
+	                              colData = colData,
+	                              design = design)
+	
+		return( dds[ rowSums(DESeq2::counts(dds)) > 1, ] )
+	}
+)
+
 
 
 ################################################################################
@@ -352,3 +485,34 @@ decompose_orthologs <- function( nhx ){
 	return( subtrees )
 
 }
+
+
+#' Create a data frame with summary statistics for expression
+#' libraries
+#' 
+#' @param e A list of Expression objects
+#' @return A data frame of summary statistics
+#' @export
+summary_libraries <- function( e ){
+
+	library_summary <- plyr::ldply( lapply( e, summarize_libraries ) )[,-1]
+	library_summary <- library_summary[with(library_summary, order(Species, Individual, Treatment)), ]
+	library_summary$Species <- sub("^(\\w)\\w+", "\\1.", library_summary$Species, perl=TRUE) # Shorten species names
+
+	return( library_summary )
+}
+
+#' Create a data frame with summary statistics for reference sequences
+#' 
+#' @param e A list of Expression objects
+#' @return A data frame of summary statistics
+#' @export
+summary_references <- function( e ){
+	reference_summary <- plyr::ldply( lapply( e, summarize_reference ) )[,-1]
+	reference_summary$Species <- sub("^(\\w)\\w+", "\\1.", reference_summary$Species, perl=TRUE) # Shorten species names
+
+	return( reference_summary )
+
+
+}
+
