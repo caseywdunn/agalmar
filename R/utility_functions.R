@@ -1,4 +1,9 @@
 # Make S3 style classes available to S4 code
+
+
+#' "DGEList" class
+#'
+#' @name DGEList-class
 setOldClass(c("DGEList"))
 
 ################################################################################
@@ -143,7 +148,7 @@ Expression <- function( data_list ) {
 		# which messes things up for row sampling later
 		dim( object@x ) <- c( length(object@x), 1 )
 	}
-	rownames( object@x ) <- data_list$gene
+	rownames( object@x ) <- data_list$sequence_id
 	colnames( object@x ) <- object@library_id
 	
 	# Parse the lengths, if present
