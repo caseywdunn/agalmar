@@ -374,6 +374,22 @@ parse_gene_tree <- function( tree_text ){
 			stop(c)
 		}
 	)
+
+	# Parse support and duplication YN tags from NHX into tree labels
+	Annotations = tree@nhx_tags
+
+	# Annotations are not necessarilly ordered by node, so order them here
+	Annotations = Annotations[ order(Annotations$node, na.last=FALSE), ]
+
+	# Retain only the annotations for internal nodes
+	Annotations = Annotations[ (length(tree@phylo$tip.label)+1):nrow(Annotations), ]
+
+	# Notung style annotations
+	labels = paste(Annotations$B, Annotations$D, sep=":")
+
+	tree@phylo$node.label = labels
+
+
 	close(tree_tc)
 	return( tree )
 }
