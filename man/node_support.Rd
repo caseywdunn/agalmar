@@ -7,8 +7,8 @@
 node_support(node_name)
 }
 \arguments{
-\item{node_name}{A character string of format 'n38047889-N-83', where 'n38047889-N' is 
-notung annotation and '83' is node support.}
+\item{node_name}{A character string of format '83:N', where '83' is node support
+and N indicates whether the node is a duplication or not}
 }
 \value{
 Numeric indicating node support

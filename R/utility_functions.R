@@ -397,16 +397,16 @@ parse_gene_tree <- function( tree_text ){
 
 #' Parse support from node name
 #' 
-#' @param node_name A character string of format 'n38047889-N-83', where 'n38047889-N' is 
-#' notung annotation and '83' is node support.
+#' @param node_name A character string of format '83:N', where '83' is node support  
+#' and N indicates whether the node is a duplication or not
 #' @return Numeric indicating node support
 #' @export
 node_support <- function( node_name ) {
 
 	ns <- NA
-	fields <- strsplit(node_name, "-")[[1]]
-	if (length( fields ) == 3 ){
-		ns = as.numeric( fields[3] )
+	fields <- strsplit(node_name, ":")[[1]]
+	if (length( fields ) == 2 ){
+		ns = as.numeric( fields[1] )
 	}
 
 	return( ns )
