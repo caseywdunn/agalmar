@@ -384,10 +384,20 @@ parse_gene_tree <- function( tree_text ){
 	# Retain only the annotations for internal nodes
 	Annotations = Annotations[ (length(tree@phylo$tip.label)+1):nrow(Annotations), ]
 
-	# Notung style annotations
-	labels = paste(Annotations$B, Annotations$D, sep=":")
-
-	tree@phylo$node.label = labels
+	if ("D" %in% names(Annotations)){
+		# Notung style annotations
+		labels = paste(Annotations$B, Annotations$D, sep=":")
+		tree@phylo$node.label = labels
+	}
+	else if ("Ev" %in% names(Annotations)){
+		# Phyldog style annotations
+		n = nrow(Annotations)
+		node_support=rep(100, n) # No support in notung trees, so set it to 100
+		duplication=rep("N", n)
+		duplication[Annotations$Ev=="D"] = "Y"
+		labels = paste(node_support, duplication, sep=":")
+		tree@phylo$node.label = labels
+	}
 
 
 	close(tree_tc)
@@ -494,7 +504,21 @@ decompose_orthologs <- function( nhx ){
 	Annotations = Annotations[ order(Annotations$node, na.last=FALSE), ]
 
 	# Identify duplicated nodes 
-	duplications = which( Annotations$D == "Y" )
+	duplications = NA
+
+
+	if ("D" %in% names(Annotations)){
+		# Notung style annotations
+		duplications = which( Annotations$D == "Y" )
+	}
+	else if ("Ev" %in% names(Annotations)){
+		# Phyldog style annotations
+		n = nrow(Annotations)
+		node_support=rep(100, n) # No support in notung trees, so set it to 100
+		duplication=rep("N", n)
+		duplications = which( Annotations$Ev == "D" )
+
+	}
 
 	phy = nhx@phylo
 
