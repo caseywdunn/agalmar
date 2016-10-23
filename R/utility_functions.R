@@ -359,9 +359,24 @@ get_lane <- function( header ) {
 }
 
 
+#' Converts data frame of node annotations to NHX node labels
+#'
+#' @param df Data frame
+#' return character A vector of node label names
+dataframe_to_node_labels <- function( df ){
+	df$node <- NULL # The nodes column is added by ggtree, go ahead and remove it
+	fields = names( df )
+	fields = paste(":", fields, sep="")
+	fields = paste(fields, "=", sep="")
+
+	labels = apply( df, 1, function(x) paste(c("[&&NHX", paste(fields, x, sep=""), "]"), collapse='') )
+
+	return(labels)
+}
+
 #' Parses text to a gene tree
 #' 
-#' @param tree_text Text representation of a tree in nhx format.
+#' @param tree_text Text representation of a tree in nhx format with notung or phyldog fields. 
 #' @return phy The tree, as an ape phylo object
 #' @export
 parse_gene_tree <- function( tree_text ){
@@ -375,7 +390,14 @@ parse_gene_tree <- function( tree_text ){
 		}
 	)
 
-	# Parse support and duplication YN tags from NHX into tree labels
+	if ("D" %in% names(tree@nhx_tags)){
+		# Notung style annotations, convert speciation annotation to that of phyldog
+		colnames(tree@nhx_tags)[which(names(tree@nhx_tags) == "D")] <- "Ev"
+		tree@nhx_tags$Ev[ tree@nhx_tags$Ev=="Y" ] = "D"
+		tree@nhx_tags$Ev[ tree@nhx_tags$Ev=="N" ] = "S"
+	}
+
+	# Parse some NHX fields into tree labels
 	Annotations = tree@nhx_tags
 
 	# Annotations are not necessarilly ordered by node, so order them here
@@ -384,21 +406,8 @@ parse_gene_tree <- function( tree_text ){
 	# Retain only the annotations for internal nodes
 	Annotations = Annotations[ (length(tree@phylo$tip.label)+1):nrow(Annotations), ]
 
-	if ("D" %in% names(Annotations)){
-		# Notung style annotations
-		labels = paste(Annotations$B, Annotations$D, sep=":")
-		tree@phylo$node.label = labels
-	}
-	else if ("Ev" %in% names(Annotations)){
-		# Phyldog style annotations
-		n = nrow(Annotations)
-		node_support=rep(100, n) # No support in notung trees, so set it to 100
-		duplication=rep("N", n)
-		duplication[Annotations$Ev=="D"] = "Y"
-		labels = paste(node_support, duplication, sep=":")
-		tree@phylo$node.label = labels
-	}
-
+	labels = dataframe_to_node_labels(Annotations)
+	tree@phylo$node.label = labels
 
 	close(tree_tc)
 	return( tree )
@@ -504,21 +513,7 @@ decompose_orthologs <- function( nhx ){
 	Annotations = Annotations[ order(Annotations$node, na.last=FALSE), ]
 
 	# Identify duplicated nodes 
-	duplications = NA
-
-
-	if ("D" %in% names(Annotations)){
-		# Notung style annotations
-		duplications = which( Annotations$D == "Y" )
-	}
-	else if ("Ev" %in% names(Annotations)){
-		# Phyldog style annotations
-		n = nrow(Annotations)
-		node_support=rep(100, n) # No support in notung trees, so set it to 100
-		duplication=rep("N", n)
-		duplications = which( Annotations$Ev == "D" )
-
-	}
+	duplications = which( Annotations$Ev == "D" )
 
 	phy = nhx@phylo
 

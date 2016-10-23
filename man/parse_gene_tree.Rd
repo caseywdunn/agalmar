@@ -7,7 +7,7 @@
 parse_gene_tree(tree_text)
 }
 \arguments{
-\item{tree_text}{Text representation of a tree in nhx format.}
+\item{tree_text}{Text representation of a tree in nhx format with notung or phyldog fields.}
 }
 \value{
 phy The tree, as an ape phylo object
