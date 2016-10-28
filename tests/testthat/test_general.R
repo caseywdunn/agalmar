@@ -21,6 +21,24 @@ test_that("can parse example ggtree nhx tree string", {
 	expect_equal( ntips , 8 )
 })
 
+test_that("can parse phyldog nhx tree", {
+	nhx = parse_gene_tree( test_phyldog_nhx_text )
+	decomposed = decompose_orthologs(nhx)
+
+	get_nhx_by_tips = function(phy, tip1, tip2){
+		n = ape::mrca(phy)[tip1, tip2]
+		label = phy$node.label[ n - length(phy$tip.label) ]
+		fields = nhx_label_to_list(label)
+		return(fields)
+	}
+
+	# Test that the NHX annotations were correctly added to the phylo node labels
+	p=nhx@phylo
+	fields = get_nhx_by_tips(p, "Hydra_magnipapillata@52244", "Ectopleura_larynx@3556167")
+	expect_equal( as.numeric(fields$S), 12 )
+})
+
+
 test_that("tree is decomposed into orthologs based on notung nhx annotations", {
 	nhx = parse_gene_tree( test_notung_nhx_text )
 	decomposed = decompose_orthologs(nhx)
@@ -37,7 +55,7 @@ test_that("tree is decomposed into orthologs based on notung nhx annotations", {
 test_that("tree is decomposed into orthologs based on phyldog nhx annotations", {
 	nhx = parse_gene_tree( test_phyldog_nhx_text )
 	decomposed = decompose_orthologs(nhx)
-	expect_equal( length(decomposed), 5 ) # haven't checked that it should be 5
+	expect_equal( length(decomposed), 5 )
 	# ggtree(nhx) + geom_tiplab() + geom_point(aes(color=D), size=5, alpha=.5) + theme(legend.position="right")
 
 })

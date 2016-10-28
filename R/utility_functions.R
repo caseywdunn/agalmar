@@ -374,6 +374,27 @@ dataframe_to_node_labels <- function( df ){
 	return(labels)
 }
 
+
+#' Converts a NHX node label string to a list of named values
+#'
+#' @param label Character string
+#' @return list A named list of values
+#' @examples
+#' nhx_label_to_list("[&&NHX:Ev=S:S=58:ND=0]")
+nhx_label_to_list <- function( label ){
+	label = sub("\\[\\&\\&NHX:", "", label)
+	label = sub("\\]", "", label)
+	labels = unlist(strsplit(label, ":"))
+	fields = strsplit(labels, "=")
+	names = unlist(lapply(fields, function(x) x[1]))
+	values = unlist(lapply(fields, function(x) x[2]))
+
+	named_list = as.list(values)
+	names(named_list) = names
+	return(named_list)
+}
+
+
 #' Parses text to a gene tree
 #' 
 #' @param tree_text Text representation of a tree in nhx format with notung or phyldog fields. 
@@ -400,13 +421,15 @@ parse_gene_tree <- function( tree_text ){
 	# Parse some NHX fields into tree labels
 	Annotations = tree@nhx_tags
 
-	# Annotations are not necessarilly ordered by node, so order them here
-	Annotations = Annotations[ order(Annotations$node, na.last=FALSE), ]
-
 	# Retain only the annotations for internal nodes
 	Annotations = Annotations[ (length(tree@phylo$tip.label)+1):nrow(Annotations), ]
 
 	labels = dataframe_to_node_labels(Annotations)
+
+	# Names don't necessarilly reflect node numbers, get rid of them
+	# to avoid later confusion
+	names(labels) = NULL
+
 	tree@phylo$node.label = labels
 
 	close(tree_tc)
