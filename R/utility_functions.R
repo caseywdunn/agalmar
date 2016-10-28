@@ -381,6 +381,7 @@ dataframe_to_node_labels <- function( df ){
 #' @return list A named list of values
 #' @examples
 #' nhx_label_to_list("[&&NHX:Ev=S:S=58:ND=0]")
+#' @export
 nhx_label_to_list <- function( label ){
 	label = sub("\\[\\&\\&NHX:", "", label)
 	label = sub("\\]", "", label)
@@ -420,6 +421,9 @@ parse_gene_tree <- function( tree_text ){
 
 	# Parse some NHX fields into tree labels
 	Annotations = tree@nhx_tags
+
+	# Make sure they are ordered by node number
+	Annotations = Annotations[order(as.numeric(Annotations$node), na.last=FALSE),]
 
 	# Retain only the annotations for internal nodes
 	Annotations = Annotations[ (length(tree@phylo$tip.label)+1):nrow(Annotations), ]

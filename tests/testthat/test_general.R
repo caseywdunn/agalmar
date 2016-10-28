@@ -54,9 +54,15 @@ test_that("can parse phyldog nhx tree", {
 		return(fields)
 	}
 
+	# Test a single node
 	p=nhx@phylo
 	fields = get_nhx_by_tips(p, "Hydra_magnipapillata@52244", "Ectopleura_larynx@3556167")
 	expect_equal( as.numeric(fields$S), 12 )
+
+	# Now check them all, assuming conserved order
+	p_nodes = sapply(p$node.label, function(x) as.numeric(nhx_label_to_list(x)$S))
+	names(p_nodes) = NULL
+	expect_equal( phylo_S, p_nodes )
 })
 
 
