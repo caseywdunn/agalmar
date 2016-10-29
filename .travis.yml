@@ -8,10 +8,10 @@ r_packages:
 
 r_github_packages:
   - caseywdunn/hutan
+  - caseywdunn/ggtree
 
 bioc_packages:
   - edgeR
-  - ggtree
   - DESeq2
 
 notifications:

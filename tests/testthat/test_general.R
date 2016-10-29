@@ -9,7 +9,6 @@ test_newick_text = "((Prayidae_D27SS7@1152004:0.310638840467,(Hippopodius_hippop
 # Example nhx tree from ggtree, https://github.com/GuangchuangYu/ggtree/blob/master/inst/extdata/ADH.nhx
 test_nhx_text = "(((ADH2:0.1[&&NHX:S=human], ADH1:0.11[&&NHX:S=human]):0.05[&&NHX:S=primates:D=Y:B=100], ADHY:0.1[&&NHX:S=nematode],ADHX:0.12[&&NHX:S=insect]):0.1[&&NHX:S=metazoa:D=N], (ADH4:0.09[&&NHX:S=yeast],ADH3:0.13[&&NHX:S=yeast], ADH2:0.12[&&NHX:S=yeast],ADH1:0.11[&&NHX:S=yeast]):0.1 [&&NHX:S=Fungi])[&&NHX:D=N];"
 
-
 test_phyldog_nhx_text = "(((Prayidae_D27SS7@2825365:0.0682841[&&NHX:Ev=S:S=58:ND=0],(Kephyes_ovata@2606431:0.0193941[&&NHX:Ev=S:S=69:ND=1],Chuniphyes_multidentata@1277217:0.0121378[&&NHX:Ev=S:S=70:ND=2]):0.0217782[&&NHX:Ev=S:S=60:ND=3]):0.0607598[&&NHX:Ev=S:S=36:ND=4],((Apolemia_sp_@1353964:0.11832[&&NHX:Ev=S:S=31:ND=9],(((Bargmannia_amoena@263997:0.0144549[&&NHX:Ev=S:S=37:ND=10],Bargmannia_elongata@946788:0.0149723[&&NHX:Ev=S:S=38:ND=11]):0.0925388[&&NHX:Ev=S:S=33:ND=12],Physonect_sp_@2066767:0.077429[&&NHX:Ev=S:S=61:ND=13]):0.0274637[&&NHX:Ev=S:S=24:ND=14],(Stephalia_dilata@2960089:0.0761163[&&NHX:Ev=S:S=52:ND=15],((Frillagalma_vityazi@1155031:0.0906068[&&NHX:Ev=S:S=53:ND=16],Resomia_ornicephala@3111757:1e-06[&&NHX:Ev=S:S=54:ND=17]):1e-06[&&NHX:Ev=S:S=45:ND=18],((Lychnagalma_utricularia@2253871:0.120851[&&NHX:Ev=S:S=65:ND=19],Nanomia_bijuga@717864:0.133939[&&NHX:Ev=S:S=71:ND=20]):1e-06[&&NHX:Ev=S:S=56:ND=21],Cordagalma_sp_@1525873:0.0693814[&&NHX:Ev=S:S=64:ND=22]):1e-06[&&NHX:Ev=S:S=46:ND=23]):0.0333823[&&NHX:Ev=S:S=40:ND=24]):1e-06[&&NHX:Ev=S:S=35:ND=25]):0.0431861[&&NHX:Ev=D:S=24:ND=26]):1e-06[&&NHX:Ev=S:S=19:ND=27],Rhizophysa_filiformis@3073669:0.22283[&&NHX:Ev=S:S=26:ND=28]):0.0292362[&&NHX:Ev=S:S=17:ND=29]):0.185603[&&NHX:Ev=D:S=17:ND=8],(Hydra_magnipapillata@52244:0.0621782[&&NHX:Ev=S:S=16:ND=5],Ectopleura_larynx@3556167:0.332505[&&NHX:Ev=S:S=15:ND=6]):0.185603[&&NHX:Ev=S:S=12:ND=7])[&&NHX:Ev=S:S=9:ND=30];"
 
 test_phyldog_nhx_text_simple = '(((Prayidae_D27SS7@2825365,(Kephyes_ovata@2606431,Chuniphyes_multidentata@1277217)Ev-S_S-60_ND-3)Ev-S_S-36_ND-4,((Apolemia_sp_@1353964,(((Bargmannia_amoena@263997,Bargmannia_elongata@946788)Ev-S_S-33_ND-12,Physonect_sp_@2066767)Ev-S_S-24_ND-14,(Stephalia_dilata@2960089,((Frillagalma_vityazi@1155031,Resomia_ornicephala@3111757)Ev-S_S-45_ND-18,((Lychnagalma_utricularia@2253871,Nanomia_bijuga@717864)Ev-S_S-56_ND-21,Cordagalma_sp_@1525873)Ev-S_S-46_ND-23)Ev-S_S-40_ND-24)Ev-S_S-35_ND-25)Ev-D_S-24_ND-26)Ev-S_S-19_ND-27,Rhizophysa_filiformis@3073669)Ev-S_S-17_ND-29)Ev-D_S-17_ND-8,(Hydra_magnipapillata@52244,Ectopleura_larynx@3556167)Ev-S_S-12_ND-7)Ev-S_S-9_ND-30;'
@@ -28,7 +27,9 @@ test_that("can parse phyldog nhx tree", {
 
 	# Test that NHX tags correctly parsed into nhx object
 	tags = nhx@nhx_tags
+	tags$node = as.numeric(tags$node)
 	tags = tags[ !is.na(tags$node), ]
+	tags = tags[ tags$node > length(nhx@phylo$tip.label), ] # Consider internal nodes o
 	tags = tags[order(tags$node),]
 
 	# Compare a node via mrca

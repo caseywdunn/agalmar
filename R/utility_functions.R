@@ -536,6 +536,8 @@ decompose_orthologs <- function( nhx ){
 
 	Annotations = nhx@nhx_tags
 
+	Annotations$node = as.numeric(Annotations$node)
+
 	# Annotations are not necessarilly ordered by node, so order them here
 	Annotations = Annotations[ order(Annotations$node, na.last=FALSE), ]
 
