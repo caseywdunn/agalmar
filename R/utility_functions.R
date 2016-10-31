@@ -585,3 +585,39 @@ summary_references <- function( e ){
 
 }
 
+
+#' Create a data frame with summary statistics for edges in a phyldog NHX tree
+#' 
+#' @param nhx A ggtree nhx object
+#' @return A data frame of summary statistics
+#' @export
+summarize_edges <- function (nhx) {
+	
+	# Create a data frame of internal node annotations
+	tags = nhx@nhx_tags
+	tags$node = as.numeric(tags$node)
+	tags$S = as.numeric(tags$S)
+	tags$ND = as.numeric(tags$ND)
+	tags = tags[order(tags$node),]
+
+	parents = nhx@phylo$edge[,1]
+	children = nhx@phylo$edge[,2]
+
+	terminal = rep(FALSE, nrow(nhx@phylo$edge))
+	terminal[ children <= length(nhx@phylo$tip.label) ] = TRUE
+
+	df = data.frame( 
+		gene_tree = rep(digest(nhx), nrow(nhx@phylo$edge)),
+		length = nhx@phylo$edge.length, 
+		Ev_parent = tags$Ev[parents],
+		S_parent  = as.numeric(tags$S[parents]),
+		ND_parent = as.numeric(tags$ND[parents]),
+		Ev_child = tags$Ev[children],
+		S_child  = as.numeric(tags$S[children]),
+		ND_child = as.numeric(tags$ND[children]),
+		terminal = terminal
+	)
+
+	return( df )
+}
+
