@@ -589,7 +589,7 @@ summary_references <- function( e ){
 #' Create a data frame with summary statistics for edges in a phyldog NHX tree
 #' 
 #' @param nhx A ggtree nhx object
-#' @return A data frame of summary statistics
+#' @return A data frame of edge summary statistics
 #' @export
 summarize_edges <- function (nhx) {
 	
@@ -607,7 +607,7 @@ summarize_edges <- function (nhx) {
 	terminal[ children <= length(nhx@phylo$tip.label) ] = TRUE
 
 	df = data.frame( 
-		gene_tree = rep(digest(nhx), nrow(nhx@phylo$edge)),
+		gene_tree = rep(digest::digest(nhx), nrow(nhx@phylo$edge)),
 		length = nhx@phylo$edge.length, 
 		Ev_parent = tags$Ev[parents],
 		S_parent  = as.numeric(tags$S[parents]),
@@ -620,4 +620,33 @@ summarize_edges <- function (nhx) {
 
 	return( df )
 }
+
+#' Create a data frame with summary statistics for edges in a phyldog NHX tree
+#' 
+#' @param nhx A ggtree nhx object
+#' @return A data frame of node summary statistics
+#' @export
+summarize_nodes <- function (nhx) {
+	
+	# Create a data frame of internal node annotations
+	tags = nhx@nhx_tags
+	tags$node = as.numeric(tags$node)
+	tags$S = as.numeric(tags$S)
+	tags$ND = as.numeric(tags$ND)
+	tags = tags[order(tags$node),]
+
+	tags = cbind( tags, node_depth=node.depth(nhx@phylo) )
+	tags = cbind( gene_tree=rep(digest::digest(nhx), nrow(tags)), tags )
+
+	phy_node_names = rep(NA, nrow(tags))
+
+	if ("node.label" %in% names(nhx@phylo)){
+		phy_node_names = c(rep(NA, length(nhx@phylo$tip.label)), nhx@phylo$node.label)
+	}
+
+	tags = cbind( tags, phy_node_names=phy_node_names )
+
+	return( tags )
+}
+
 

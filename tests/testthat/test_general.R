@@ -88,6 +88,18 @@ test_that("tree is decomposed into orthologs based on phyldog nhx annotations", 
 
 })
 
+test_that("can summarize edges", {
+	nhx = parse_gene_tree( test_phyldog_nhx_text )
+	edges = summarize_edges(nhx)
+	expect_equal( nrow(edges), 30 )
+})
+
+
+test_that("can summarize nodes", {
+	nhx = parse_gene_tree( test_phyldog_nhx_text )
+	nodes = summarize_nodes(nhx)
+	expect_equal( nrow(nodes), 31 )
+})
 
 # test_tree = read.tree( text=test_newick_text )
 

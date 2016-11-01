@@ -18,7 +18,8 @@ Imports:
     ape (>= 3.3),
     ggtree,
     DESeq2,
-    plyr
+    plyr,
+    digest
 Suggests:
     testthat,
     roxygen2,
