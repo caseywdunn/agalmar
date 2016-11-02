@@ -621,7 +621,7 @@ summarize_edges <- function (nhx) {
 	return( df )
 }
 
-#' Create a data frame with summary statistics for edges in a phyldog NHX tree
+#' Create a data frame with summary statistics for nodes in a phyldog NHX tree
 #' 
 #' @param nhx A ggtree nhx object
 #' @return A data frame of node summary statistics
@@ -641,7 +641,7 @@ summarize_nodes <- function (nhx) {
 	phy_node_names = rep(NA, nrow(tags))
 
 	if ("node.label" %in% names(nhx@phylo)){
-		phy_node_names = c(rep(NA, length(nhx@phylo$tip.label)), nhx@phylo$node.label)
+		phy_node_names = c(nhx@phylo$tip.label, nhx@phylo$node.label)
 	}
 
 	tags = cbind( tags, phy_node_names=phy_node_names )

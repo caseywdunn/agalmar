@@ -2,7 +2,7 @@
 % Please edit documentation in R/utility_functions.R
 \name{summarize_nodes}
 \alias{summarize_nodes}
-\title{Create a data frame with summary statistics for edges in a phyldog NHX tree}
+\title{Create a data frame with summary statistics for nodes in a phyldog NHX tree}
 \usage{
 summarize_nodes(nhx)
 }
@@ -13,6 +13,6 @@ summarize_nodes(nhx)
 A data frame of node summary statistics
 }
 \description{
-Create a data frame with summary statistics for edges in a phyldog NHX tree
+Create a data frame with summary statistics for nodes in a phyldog NHX tree
 }
 
