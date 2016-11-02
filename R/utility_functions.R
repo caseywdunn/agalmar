@@ -638,13 +638,18 @@ summarize_nodes <- function (nhx) {
 	tags = cbind( tags, node_depth=node.depth(nhx@phylo) )
 	tags = cbind( gene_tree=rep(digest::digest(nhx), nrow(tags)), tags )
 
+	# Parse node labels for tips and internal nodes from phylo
 	phy_node_names = rep(NA, nrow(tags))
-
 	if ("node.label" %in% names(nhx@phylo)){
 		phy_node_names = c(nhx@phylo$tip.label, nhx@phylo$node.label)
 	}
 
-	tags = cbind( tags, phy_node_names=phy_node_names )
+	# Parse sequence id, the integer after @, from the tip names
+	sequence_ids = phy_node_names
+	sequence_ids[ !grepl('@', sequence_ids) ] = NA
+	sequence_ids = as.numeric(sub('^.+@', '', sequence_ids, perl=TRUE))
+
+	tags = cbind( tags, phy_node_names=phy_node_names, sequence_ids=sequence_ids )
 
 	return( tags )
 }
