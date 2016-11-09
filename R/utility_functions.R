@@ -654,4 +654,67 @@ summarize_nodes <- function (nhx) {
 	return( tags )
 }
 
+#' Drops tips from an NHX tree, similar to how ape::drop.tip 
+#' drops tips from a phylo object
+#' 
+#' @param nhx A ggtree nhx object
+#' @param tip A vector of mode numeric or character specifying the tips to delete
+#' @param test A logical to designate whether to rotate some internal nodes for more robust testing
+#' @return A ggtree::nhx object
+#' @export
+drop.tip.nhx <- function(nhx, tip, test=FALSE){
+
+	# label the internal tree nodes by their number
+	nhx@phylo$node.label = NULL
+	nhx@phylo$node.label = (length(nhx@phylo$tip.label)+1):max(nhx@phylo$edge)
+
+	# Prepare the nhx object for subsampling
+	nhx@nhx_tags$node = as.numeric(nhx@nhx_tags$node)
+	nhx@nhx_tags = nhx@nhx_tags[order(nhx@nhx_tags$node),]
+
+	# add a colmn that has labels for both tips and internal nodes
+	nhx@nhx_tags$node.label = c(nhx@phylo$tip.label, as.character(nhx@phylo$node.label))
+
+	# Will need to take different approaches for subsampling tips 
+	# and internal nodes, add a column to make it easy to tell them apart
+	nhx@nhx_tags$is_tip = nhx@nhx_tags$node <= length(nhx@phylo$tip.label)
+
+	# Testing code to make sure subsampling still works if it results in 
+	# a different order of nodes.
+
+	if(test){
+		# Get internal node numbers
+		nodes = unique(nhx@phylo$edge[,1])
+		nodes = nodes[order(nodes)]
+
+		# Take the even nodes
+		nodes = nodes[(nodes %% 2) ==0]
+
+		nhx@phylo = rotate(nhx@phylo, nodes)
+	}
+
+	# Remove tips
+	nhx@phylo = ape::drop.tip( nhx@phylo, tip )
+
+	# Subsample the tags
+	nhx@nhx_tags = nhx@nhx_tags[nhx@nhx_tags$node.label %in% (c(nhx@phylo$tip.label, as.character(nhx@phylo$node.label))),]
+
+	# Update tip node numbers
+	tip_nodes = nhx@nhx_tags$node.label[ nhx@nhx_tags$is_tip ]
+	nhx@nhx_tags$node[ nhx@nhx_tags$is_tip ] = match(nhx@phylo$tip.label, tip_nodes)
+
+	# Following not needed as drop.tip doesn't update internal node numbers
+	# Update internal node numbers
+	# internal_numbers = (length(nhx@phylo$tip.label)+1):max(nhx@phylo$edge)
+	# internal_nodes = nhx@nhx_tags$node.label[ !nhx@nhx_tags$is_tip ]
+	# nhx@nhx_tags$node[ ! nhx@nhx_tags$is_tip ] = internal_numbers[match(nhx@phylo$node.label), internal_nodes]
+
+	# Clean up
+	nhx@nhx_tags$node.label = NULL
+	nhx@nhx_tags$is_tip = NULL
+
+	return(nhx)
+
+}
+
 

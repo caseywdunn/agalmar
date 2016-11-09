@@ -101,6 +101,16 @@ test_that("can summarize nodes", {
 	expect_equal( nrow(nodes), 31 )
 })
 
+test_that("can drop nhx tips", {
+	nhx = parse_gene_tree( test_phyldog_nhx_text )
+	to_drop = c("Physonect_sp_@2066767", "Lychnagalma_utricularia@2253871", "Kephyes_ovata@2606431")
+	
+	nhx_reduced = drop.tip.nhx(nhx, to_drop, test=FALSE)
+
+	expect_equal( length(nhx_reduced@phylo$tip.label), 13 )
+})
+drop.tip.nhx
+
 # test_tree = read.tree( text=test_newick_text )
 
 
