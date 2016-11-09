@@ -690,7 +690,7 @@ drop.tip.nhx <- function(nhx, tip, test=FALSE){
 		# Take the even nodes
 		nodes = nodes[(nodes %% 2) ==0]
 
-		nhx@phylo = rotate(nhx@phylo, nodes)
+		nhx@phylo = ape::rotate(nhx@phylo, nodes)
 	}
 
 	# Remove tips

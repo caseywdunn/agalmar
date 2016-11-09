@@ -19,7 +19,8 @@ Imports:
     ggtree,
     DESeq2,
     plyr,
-    digest
+    digest,
+    methods
 Suggests:
     testthat,
     roxygen2,
