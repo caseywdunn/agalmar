@@ -680,17 +680,16 @@ drop.tip.nhx <- function(nhx, tip, test=FALSE){
 	nhx@nhx_tags$is_tip = nhx@nhx_tags$node <= length(nhx@phylo$tip.label)
 
 	# Testing code to make sure subsampling still works if it results in 
-	# a different order of nodes.
+	# a different order of nodes. Not a very stringent test, since node 
+	# numbers aren't changed when rotating internal nodes.
 
 	if(test){
 		# Get internal node numbers
 		nodes = unique(nhx@phylo$edge[,1])
 		nodes = nodes[order(nodes)]
 
-		# Take the even nodes
-		nodes = nodes[(nodes %% 2) ==0]
-
-		nhx@phylo = ape::rotate(nhx@phylo, nodes)
+		# Rotate one of them
+		nhx@phylo = ape::rotate(nhx@phylo, nodes[1])
 	}
 
 	# Remove tips

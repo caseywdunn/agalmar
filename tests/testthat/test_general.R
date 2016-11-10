@@ -106,7 +106,9 @@ test_that("can drop nhx tips", {
 	to_drop = c("Physonect_sp_@2066767", "Lychnagalma_utricularia@2253871", "Kephyes_ovata@2606431")
 	
 	nhx_reduced = drop.tip.nhx(nhx, to_drop, test=FALSE)
+	expect_equal( length(nhx_reduced@phylo$tip.label), 13 )
 
+	nhx_reduced = drop.tip.nhx(nhx, to_drop, test=TRUE)
 	expect_equal( length(nhx_reduced@phylo$tip.label), 13 )
 })
 drop.tip.nhx
