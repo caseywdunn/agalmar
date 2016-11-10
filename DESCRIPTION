@@ -20,7 +20,8 @@ Imports:
     DESeq2,
     plyr,
     digest,
-    methods
+    methods,
+    graphics
 Suggests:
     testthat,
     roxygen2,

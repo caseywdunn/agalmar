@@ -635,7 +635,7 @@ summarize_nodes <- function (nhx) {
 	tags$ND = as.numeric(tags$ND)
 	tags = tags[order(tags$node),]
 
-	tags = cbind( tags, node_depth=node.depth(nhx@phylo) )
+	tags = cbind( tags, node_depth=ape::node.depth(nhx@phylo) )
 	tags = cbind( gene_tree=rep(digest::digest(nhx), nrow(tags)), tags )
 
 	# Parse node labels for tips and internal nodes from phylo
