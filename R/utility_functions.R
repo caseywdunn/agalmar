@@ -112,7 +112,7 @@ setClass(
 #' @return An Expression object
 #' @export
 Expression <- function( data_list ) {
-	object <- new("Expression")
+	object <- methods::new("Expression")
 	
 	object@species <- data_list$species
 
@@ -522,7 +522,7 @@ plot_matrix <- function(m, ... ) {
 
 	nr <- nrow(m)
 	nc <- ncol(m)
-	image(1:nc, 1:nr, t(m[nr:1, ]), axes=F,xlab="", ylab="", ... )
+	graphics::image(1:nc, 1:nr, t(m[nr:1, ]), axes=F,xlab="", ylab="", ... )
 }
 
 
