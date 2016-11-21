@@ -411,12 +411,19 @@ parse_gene_tree <- function( tree_text ){
 			stop(c)
 		}
 	)
+	close(tree_tc)
 
 	if ("D" %in% names(tree@nhx_tags)){
 		# Notung style annotations, convert speciation annotation to that of phyldog
 		colnames(tree@nhx_tags)[which(names(tree@nhx_tags) == "D")] <- "Ev"
 		tree@nhx_tags$Ev[ tree@nhx_tags$Ev=="Y" ] = "D"
 		tree@nhx_tags$Ev[ tree@nhx_tags$Ev=="N" ] = "S"
+	}
+	else if ("Ev" %in% names(tree@nhx_tags)) {
+		# Phyldog style annotations
+		# Retype numeric fields
+		tree@nhx_tags$S =  as.numeric(tree@nhx_tags$S)
+		tree@nhx_tags$ND = as.numeric(tree@nhx_tags$ND)
 	}
 
 	# Parse some NHX fields into tree labels
@@ -436,7 +443,28 @@ parse_gene_tree <- function( tree_text ){
 
 	tree@phylo$node.label = labels
 
-	close(tree_tc)
+
+	# Parse node labels for tips and internal nodes from phylo
+	phy_node_names = rep(NA, nrow(tree@nhx_tags))
+	if ("node.label" %in% names(tree@phylo)){
+		phy_node_names = c(tree@phylo$tip.label, tree@phylo$node.label)
+	}
+
+	# Parse sequence id, the integer after @, from the tip names
+	sequence_ids = phy_node_names
+	sequence_ids[ !grepl('@', sequence_ids) ] = NA
+	sequence_ids = as.numeric(sub('^.+@', '', sequence_ids, perl=TRUE))
+
+	# Parse species, the character string before @, from the tip names
+	species_names = phy_node_names
+	species_names[ !grepl('@', species_names) ] = NA
+	species_names = sub('@.+$', '', species_names, perl=TRUE)
+	species_names = sub('_', ' ', species_names, perl=TRUE)
+
+
+	tree@nhx_tags = cbind( tree@nhx_tags, phy_node_names=phy_node_names, species=species_names, sequence_ids=sequence_ids )
+
+
 	return( tree )
 }
 
@@ -630,26 +658,9 @@ summarize_nodes <- function (nhx) {
 	
 	# Create a data frame of internal node annotations
 	tags = nhx@nhx_tags
-	tags$node = as.numeric(tags$node)
-	tags$S = as.numeric(tags$S)
-	tags$ND = as.numeric(tags$ND)
-	tags = tags[order(tags$node),]
 
 	tags = cbind( tags, node_depth=ape::node.depth(nhx@phylo) )
 	tags = cbind( gene_tree=rep(digest::digest(nhx), nrow(tags)), tags )
-
-	# Parse node labels for tips and internal nodes from phylo
-	phy_node_names = rep(NA, nrow(tags))
-	if ("node.label" %in% names(nhx@phylo)){
-		phy_node_names = c(nhx@phylo$tip.label, nhx@phylo$node.label)
-	}
-
-	# Parse sequence id, the integer after @, from the tip names
-	sequence_ids = phy_node_names
-	sequence_ids[ !grepl('@', sequence_ids) ] = NA
-	sequence_ids = as.numeric(sub('^.+@', '', sequence_ids, perl=TRUE))
-
-	tags = cbind( tags, phy_node_names=phy_node_names, sequence_ids=sequence_ids )
 
 	return( tags )
 }
