@@ -461,9 +461,10 @@ parse_gene_tree <- function( tree_text ){
 	species_names = sub('@.+$', '', species_names, perl=TRUE)
 	species_names = sub('_', ' ', species_names, perl=TRUE)
 
+	# Add node depth
+	node_depth = ape::node.depth(tree@phylo)
 
-	tree@nhx_tags = cbind( tree@nhx_tags, phy_node_names=phy_node_names, species=species_names, sequence_ids=sequence_ids )
-
+	tree@nhx_tags = cbind( tree@nhx_tags, phy_node_names=phy_node_names, species=species_names, sequence_ids=sequence_ids, node_depth=node_depth )
 
 	return( tree )
 }
@@ -652,7 +653,6 @@ summarize_nodes <- function (nhx) {
 	# Create a data frame of internal node annotations
 	tags = nhx@nhx_tags
 
-	tags = cbind( tags, node_depth=ape::node.depth(nhx@phylo) )
 	tags = cbind( gene_tree=rep(digest::digest(nhx), nrow(tags)), tags )
 
 	return( tags )
