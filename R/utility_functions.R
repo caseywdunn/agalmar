@@ -464,7 +464,14 @@ parse_gene_tree <- function( tree_text ){
 	# Add node depth
 	node_depth = ape::node.depth(tree@phylo)
 
-	tree@nhx_tags = cbind( tree@nhx_tags, phy_node_names=phy_node_names, species=species_names, sequence_ids=sequence_ids, node_depth=node_depth )
+	tree@nhx_tags = cbind( 
+		tree@nhx_tags, 
+		phy_node_names=phy_node_names, 
+		species=species_names, 
+		sequence_ids=sequence_ids, 
+		node_depth=node_depth,
+		stringsAsFactors=FALSE
+		)
 
 	return( tree )
 }
@@ -629,15 +636,16 @@ summarize_edges <- function (nhx) {
 	terminal[ children <= length(nhx@phylo$tip.label) ] = TRUE
 
 	df = data.frame( 
-		gene_tree = as.character(rep(digest::digest(nhx), nrow(nhx@phylo$edge))),
+		gene_tree = rep(digest::digest(nhx), nrow(nhx@phylo$edge)),
 		length = nhx@phylo$edge.length, 
-		Ev_parent = as.character(tags$Ev[parents]),
+		Ev_parent = tags$Ev[parents],
 		S_parent  = as.numeric(tags$S[parents]),
 		ND_parent = as.numeric(tags$ND[parents]),
-		Ev_child = as.character(tags$Ev[children]),
+		Ev_child = tags$Ev[children],
 		S_child  = as.numeric(tags$S[children]),
 		ND_child = as.numeric(tags$ND[children]),
-		terminal = terminal
+		terminal = terminal,
+		stringsAsFactors = FALSE
 	)
 
 	return( df )
