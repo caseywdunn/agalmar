@@ -629,12 +629,12 @@ summarize_edges <- function (nhx) {
 	terminal[ children <= length(nhx@phylo$tip.label) ] = TRUE
 
 	df = data.frame( 
-		gene_tree = rep(digest::digest(nhx), nrow(nhx@phylo$edge)),
+		gene_tree = as.character(rep(digest::digest(nhx), nrow(nhx@phylo$edge))),
 		length = nhx@phylo$edge.length, 
-		Ev_parent = tags$Ev[parents],
+		Ev_parent = as.character(tags$Ev[parents]),
 		S_parent  = as.numeric(tags$S[parents]),
 		ND_parent = as.numeric(tags$ND[parents]),
-		Ev_child = tags$Ev[children],
+		Ev_child = as.character(tags$Ev[children]),
 		S_child  = as.numeric(tags$S[children]),
 		ND_child = as.numeric(tags$ND[children]),
 		terminal = terminal
