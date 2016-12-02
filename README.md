@@ -35,6 +35,7 @@ First, install the [devtools](https://github.com/hadley/devtools) package. Then,
 
     source("https://bioconductor.org/biocLite.R")
     biocLite("edgeR")
+    biocLite("DESeq2")
     library(devtools)
     install_github('caseywdunn/hutan')
     install_github('caseywdunn/agalmar')
