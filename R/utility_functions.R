@@ -4,7 +4,7 @@
 #' "DGEList" class
 #'
 #' @name DGEList-class
-setOldClass(c("DGEList"))
+setOldClass( c( "DGEList" ) )
 
 ################################################################################
 # Classes
@@ -18,7 +18,7 @@ setOldClass(c("DGEList"))
 setGeneric (
 	name = "summarize_libraries", 
 	def = function( object ) 
-		{ standardGeneric("summarize_libraries") }
+		{ standardGeneric( "summarize_libraries" ) }
 )
 
 
@@ -31,7 +31,7 @@ setGeneric (
 setGeneric (
 	name = "summarize_reference", 
 	def = function( object ) 
-		{ standardGeneric("summarize_reference") }
+		{ standardGeneric( "summarize_reference" ) }
 )
 
 
@@ -44,7 +44,7 @@ setGeneric (
 setGeneric (
 	name = "species", 
 	def = function( object ) 
-		{ standardGeneric("species") }
+		{ standardGeneric( "species" ) }
 )
 
 
@@ -57,7 +57,7 @@ setGeneric (
 setGeneric (
 	name = "create_DESeq2", 
 	def = function( object, design ) 
-		{ standardGeneric("create_DESeq2") }
+		{ standardGeneric( "create_DESeq2" ) }
 )
 
 
@@ -86,7 +86,7 @@ setGeneric (
 #' @importClassesFrom DESeq2 DESeqDataSet
 setClass(
 	Class = "Expression",
-	representation = representation (
+	representation = representation(
 		species = "character", 
 		edgeR = "DGEList",
 		lengths = "matrix",
@@ -111,93 +111,93 @@ setClass(
 #' @param data_list A list containing the expression data
 #' @return An Expression object
 #' @export
-Expression <- function( data_list ) {
-	object <- methods::new("Expression")
+Expression = function( data_list ) {
+	object = methods::new( "Expression" )
 	
-	object@species <- data_list$species
+	object@species = data_list$species
 
 
 	
 	# Parse column annotations
-	object@individual <- as.factor( data_list$individual )
-	object@treatment  <- as.factor( data_list$treatment )
-	object@id  <- as.factor( data_list$id )
-	object@library_id <- as.factor( data_list$library_id )
-	object@sample_prep <- data_list$sample_prep
+	object@individual = as.factor( data_list$individual )
+	object@treatment  = as.factor( data_list$treatment )
+	object@id  = as.factor( data_list$id )
+	object@library_id = as.factor( data_list$library_id )
+	object@sample_prep = data_list$sample_prep
 	
 	# Simplify sample prep names
-	object@sample_prep[grep("Illumina TruSeq", object@sample_prep)] <- "Illumina TruSeq"
-	object@sample_prep[grep("Illumina mRNA-Seq", object@sample_prep)] <- "Illumina mRNA-Seq"
-	object@sample_prep[grep("NEBNext", object@sample_prep)] <- "NEBNext"
+	object@sample_prep[grep( "Illumina TruSeq", object@sample_prep )] = "Illumina TruSeq"
+	object@sample_prep[grep( "Illumina mRNA-Seq", object@sample_prep )] = "Illumina mRNA-Seq"
+	object@sample_prep[grep( "NEBNext", object@sample_prep )] = "NEBNext"
 	
 	# Parse row annotations
-	object@genome_type <- as.factor( data_list$genome_type )
-	object@molecule_type <- as.factor( data_list$molecule_type )
+	object@genome_type = as.factor( data_list$genome_type )
+	object@molecule_type = as.factor( data_list$molecule_type )
 
 	if ( exists( 'blast_hit', where=data_list ) ){
 		# old name, retained for compatability
-		object@blast_hit <- data_list$blast_hit
+		object@blast_hit = data_list$blast_hit
 	} else {
-		object@blast_hit <- data_list$blast_title
+		object@blast_hit = data_list$blast_title
 	}
 	
 	# Parse counts matrix
-	object@x <- data_list$count
-	if ( is.null( dim(object@x) ) ){
+	object@x = data_list$count
+	if ( is.null( dim( object@x ) ) ){
 		# if there is a single samply, then x is a vector rather than an array, 
 		# which messes things up for row sampling later
-		dim( object@x ) <- c( length(object@x), 1 )
+		dim( object@x ) = c( length( object@x ), 1 )
 	}
-	rownames( object@x ) <- data_list$sequence_id
-	colnames( object@x ) <- object@library_id
+	rownames( object@x ) = data_list$sequence_id
+	colnames( object@x ) = object@library_id
 	
 	# Parse the lengths, if present
 	if ( exists( 'length', where=data_list ) ){
-		object@lengths <- data_list$length
+		object@lengths = data_list$length
 	} else{
-		empty_lengths <- rep( NA, length(object@x) )
-		dim( empty_lengths ) <- dim( object@x )
-		object@lengths <- empty_lengths
+		empty_lengths = rep( NA, length( object@x ) )
+		dim( empty_lengths ) = dim( object@x )
+		object@lengths = empty_lengths
 	}
 
 
 	# Calculate total counts, including rRNA
-	totals <- colSums( object@x )
+	totals = colSums( object@x )
 	
 	# Quantify rRNA and identify non ribosomal RNA
-	rrna <- object@molecule_type %in% c('L','S')
+	rrna = object@molecule_type %in% c( 'L','S' )
 
-	if ( sum(rrna) == 0 ){
-		object@rRNA <- rep( 0, ncol(object@x) )
-	} else if ( sum(rrna) == 1 ){
-		object@rRNA <- object@x[rrna,]/totals
+	if ( sum( rrna ) == 0 ){
+		object@rRNA = rep( 0, ncol( object@x ) )
+	} else if ( sum( rrna ) == 1 ){
+		object@rRNA = object@x[rrna,]/totals
 	} else {
-		object@rRNA <- colSums(object@x[rrna,])/totals
+		object@rRNA = colSums( object@x[rrna,] ) / totals
 	}
 	
 	# Identify protein coding genes
-	protein_coding <- ( object@molecule_type == 'P' )
-	object@protein <- colSums(object@x[protein_coding,])/totals
+	protein_coding = ( object@molecule_type == 'P' )
+	object@protein = colSums( object@x[protein_coding,] ) / totals
 
 	# Identify rows that have at last 2 libraries with count greater than 0
-	passes_sampling_criterion <- rowSums(object@x > 0) > 2
+	passes_sampling_criterion = rowSums( object@x > 0 ) > 2
 
 	# Exclude plastid genomes
-	genome_keep <- (object@genome_type != 'P') & (object@genome_type != 'M')
+	genome_keep = ( object@genome_type != 'P' ) & ( object@genome_type != 'M' )
 	
 	# Create a vector of rows to keep
-	keep <- protein_coding & genome_keep & passes_sampling_criterion
+	keep = protein_coding & genome_keep & passes_sampling_criterion
 	
 	# Subsample matrix and row annotations
-	object@x <- object@x[keep,]
-	object@lengths <- object@lengths[keep,]
-	object@genome_type <- object@genome_type[keep]
-	object@molecule_type <- object@molecule_type[keep]
-	object@blast_hit <- object@blast_hit[keep]
+	object@x = object@x[ keep, ]
+	object@lengths = object@lengths[ keep, ]
+	object@genome_type = object@genome_type[ keep ]
+	object@molecule_type = object@molecule_type[ keep ]
+	object@blast_hit = object@blast_hit[ keep ]
 
 	# Prepare EdgeR DGE object
-	object@edgeR <- edgeR::DGEList( counts=object@x, group=object@treatment )
-	object@edgeR <- edgeR::calcNormFactors( object@edgeR )
+	object@edgeR = edgeR::DGEList( counts=object@x, group=object@treatment )
+	object@edgeR = edgeR::calcNormFactors( object@edgeR )
 	
 	g = nrow( object@x )
 	s = ncol( object@x )
@@ -217,7 +217,6 @@ Expression <- function( data_list ) {
 
 	)
 
-
 	object
 }
 
@@ -228,34 +227,34 @@ Expression <- function( data_list ) {
 #' @return A data frame that summarizes each library with expression data in the
 #' Expression object
 #' @export
-setMethod("summarize_libraries", signature(object = "Expression"),
-	function(object) {
+setMethod( "summarize_libraries", signature( object = "Expression" ),
+	function( object ) {
 
 		# Some json files do not have an id field, need some logic to accommodate this when constructing hte table
-		if ( length(object@id) < 1 ){
-			library_summary <- data.frame( 
-				Species=rep(object@species, length(object@library_id)), 
-				Individual=object@individual, 
-				Treatment=object@treatment, 
-				Library=object@library_id, 
-				Preparation=object@sample_prep, 
-				rRNA=object@rRNA, 
-				Protein=object@protein, 
-				Reads=colSums(object@edgeR$counts)
+		if ( length( object@id ) < 1 ){
+			library_summary = data.frame( 
+				Species = rep( object@species, length( object@library_id ) ), 
+				Individual = object@individual, 
+				Treatment = object@treatment, 
+				Library = object@library_id, 
+				Preparation = object@sample_prep, 
+				rRNA = object@rRNA, 
+				Protein = object@protein, 
+				Reads = colSums( object@edgeR$counts )
 			)
 		}
 		else{
-			library_summary <- data.frame(
-				Species=rep(object@species, length(object@library_id)), 
-				Individual=object@individual, 
-				Treatment=object@treatment, 
-				Library=object@library_id, 
-				Preparation=object@sample_prep, 
-				rRNA=object@rRNA, 
-				Protein=object@protein, 
-				Reads=colSums(object@edgeR$counts), 
-				Run=as.factor(sapply(object@id, get_run)), 
-				Lane=as.factor(sapply(object@id, get_lane))
+			library_summary = data.frame(
+				Species = rep( object@species, length( object@library_id ) ), 
+				Individual = object@individual, 
+				Treatment = object@treatment, 
+				Library = object@library_id, 
+				Preparation = object@sample_prep, 
+				rRNA = object@rRNA, 
+				Protein = object@protein, 
+				Reads = colSums( object@edgeR$counts ), 
+				Run = as.factor( sapply( object@id, get_run ) ), 
+				Lane = as.factor( sapply( object@id, get_lane ) )
 			)
 		}
 
@@ -270,8 +269,8 @@ setMethod("summarize_libraries", signature(object = "Expression"),
 #' @return A data frame that summarizes the reference sequences in the
 #' Expression object
 #' @export
-setMethod("summarize_reference", signature(object = "Expression"),
-	function(object) {
+setMethod( "summarize_reference", signature( object = "Expression" ),
+	function( object ) {
 
 		reference_summary = data.frame(
 			Species = object@species,
@@ -288,8 +287,8 @@ setMethod("summarize_reference", signature(object = "Expression"),
 #' @param object An Expression object
 #' @return Species name
 #' @export
-setMethod("species", signature(object = "Expression"),
-	function(object) {
+setMethod( "species", signature( object = "Expression" ),
+	function( object ) {
 				
 		return( object@species )
 	}
@@ -302,16 +301,22 @@ setMethod("species", signature(object = "Expression"),
 #' @param design a formula that explains the project design 
 #' @return A DESeqDataSet object
 #' @export
-setMethod("create_DESeq2", signature(object = "Expression", design = "formula" ),
-	function(object, design) {
+setMethod( "create_DESeq2", signature( object = "Expression", design = "formula" ),
+	function( object, design ) {
 
-		colData=data.frame(treatment=object@treatment,individual=object@individual, row.names=object@library_id)
+		colData = data.frame( 
+			treatment = object@treatment, 
+			individual = object@individual, 
+			row.names = object@library_id 
+		)
 
-		dds <- DESeq2::DESeqDataSetFromMatrix(countData = floor(object@x),
-	                              colData = colData,
-	                              design = design)
+		dds = DESeq2::DESeqDataSetFromMatrix( 
+				countData = floor( object@x ),
+				colData = colData,
+				design = design 
+	        )
 	
-		return( dds[ rowSums(DESeq2::counts(dds)) > 1, ] )
+		return( dds[ rowSums( DESeq2::counts( dds ) ) > 1, ] )
 	}
 )
 
@@ -325,17 +330,17 @@ setMethod("create_DESeq2", signature(object = "Expression", design = "formula" )
 #' @param header character strings
 #' @return run character strings
 #' @export
-get_run <- function( header ) {
-	header <- as.character(header)
-	run <- ''
-	if (substring(header,1,1) == 'H') {
-		fields <- strsplit(header, "-")
-		fields <- unlist(fields)
-		run <- paste(fields[1],fields[2],fields[3], sep = "-")
+get_run = function( header ) {
+	header = as.character( header )
+	run = ''
+	if ( substring( header, 1, 1 ) == 'H' ) {
+		fields = strsplit( header, "-" )
+		fields = unlist( fields )
+		run = paste( fields[1], fields[2], fields[3], sep = "-" )
 	} else {
-	  	fields <- strsplit(header, "-")
-		fields <- unlist(fields)
-		run <- paste(fields[1],fields[2], sep = "-")
+	  	fields = strsplit( header, "-" )
+		fields = unlist( fields )
+		run = paste( fields[1], fields[2], sep = "-" )
     }
     
 	return( run )
@@ -348,12 +353,12 @@ get_run <- function( header ) {
 #' @param header character strings
 #' @return lane character strings
 #' @export
-get_lane <- function( header ) {
-	header <- as.character(header)
+get_lane = function( header ) {
+	header = as.character( header )
 
-	fields <- strsplit(header, "-")
-	fields <- unlist(fields)
-	lane <- paste(fields[length(fields)-1])
+	fields = strsplit( header, "-" )
+	fields = unlist( fields )
+	lane = paste( fields[ length( fields ) - 1 ] )
 
 	return( lane )
 }
@@ -363,15 +368,19 @@ get_lane <- function( header ) {
 #'
 #' @param df Data frame
 #' return character A vector of node label names
-dataframe_to_node_labels <- function( df ){
-	df$node <- NULL # The nodes column is added by ggtree, go ahead and remove it
+dataframe_to_node_labels = function( df ){
+	df$node = NULL # The nodes column is added by ggtree, go ahead and remove it
 	fields = names( df )
-	fields = paste(":", fields, sep="")
-	fields = paste(fields, "=", sep="")
+	fields = paste( ":", fields, sep="" )
+	fields = paste( fields, "=", sep="" )
 
-	labels = apply( df, 1, function(x) paste(c("[&&NHX", paste(fields, x, sep=""), "]"), collapse='') )
+	labels = apply( 
+		df, 
+		1, 
+		function( x ) paste( c( "[&&NHX", paste( fields, x, sep="" ), "]" ), collapse='' )
+	)
 
-	return(labels)
+	return( labels )
 }
 
 
@@ -380,19 +389,19 @@ dataframe_to_node_labels <- function( df ){
 #' @param label Character string
 #' @return list A named list of values
 #' @examples
-#' nhx_label_to_list("[&&NHX:Ev=S:S=58:ND=0]")
+#' nhx_label_to_list( "[&&NHX:Ev=S:S=58:ND=0]" )
 #' @export
-nhx_label_to_list <- function( label ){
-	label = sub("\\[\\&\\&NHX:", "", label)
-	label = sub("\\]", "", label)
-	labels = unlist(strsplit(label, ":"))
-	fields = strsplit(labels, "=")
-	names = unlist(lapply(fields, function(x) x[1]))
-	values = unlist(lapply(fields, function(x) x[2]))
+nhx_label_to_list = function( label ){
+	label = sub( "\\[\\&\\&NHX:", "", label )
+	label = sub( "\\]", "", label )
+	labels = unlist( strsplit( label, ":" ) )
+	fields = strsplit( labels, "=" )
+	names = unlist( lapply( fields, function( x ) x[ 1 ] ) )
+	values = unlist( lapply( fields, function( x ) x[ 2 ] ) )
 
-	named_list = as.list(values)
-	names(named_list) = names
-	return(named_list)
+	named_list = as.list( values )
+	names( named_list ) = names
+	return( named_list )
 }
 
 
@@ -401,68 +410,70 @@ nhx_label_to_list <- function( label ){
 #' @param tree_text Text representation of a tree in nhx format with notung or phyldog fields. 
 #' @return phy The tree, as an ape phylo object
 #' @export
-parse_gene_tree <- function( tree_text ){
+parse_gene_tree = function( tree_text ){
 
 	tree_tc = textConnection( tree_text )
 	tryCatch(
 		tree <- ggtree::read.nhx( tree_tc ),
-		error = function(c){
-			c$message <- paste0(c$message, " (could not parse tree ", tree_text, ")")
-			stop(c)
+		error = function( c ){
+			c$message = paste0( c$message, " (could not parse tree ", tree_text, ")" )
+			stop( c )
 		}
 	)
-	close(tree_tc)
+	close( tree_tc )
 
-	if ("D" %in% names(tree@nhx_tags)){
+	if ( "D" %in% names( tree@nhx_tags ) ){
 		# Notung style annotations, convert speciation annotation to that of phyldog
-		colnames(tree@nhx_tags)[which(names(tree@nhx_tags) == "D")] <- "Ev"
-		tree@nhx_tags$Ev[ tree@nhx_tags$Ev=="Y" ] = "D"
-		tree@nhx_tags$Ev[ tree@nhx_tags$Ev=="N" ] = "S"
+		colnames( tree@nhx_tags )[which( names( tree@nhx_tags ) == "D" )] = "Ev"
+		tree@nhx_tags$Ev[ tree@nhx_tags$Ev == "Y" ] = "D"
+		tree@nhx_tags$Ev[ tree@nhx_tags$Ev == "N" ] = "S"
 	}
-	else if ("Ev" %in% names(tree@nhx_tags)) {
+	else if ( "Ev" %in% names( tree@nhx_tags ) ) {
 		# Phyldog style annotations
 		# Retype numeric fields
-		tree@nhx_tags$S =  as.numeric(tree@nhx_tags$S)
-		tree@nhx_tags$ND = as.numeric(tree@nhx_tags$ND)
+		tree@nhx_tags$S =  as.numeric( tree@nhx_tags$S )
+		tree@nhx_tags$ND = as.numeric( tree@nhx_tags$ND )
 	}
 
 	# Parse some NHX fields into tree labels
 	Annotations = tree@nhx_tags
 
 	# Make sure they are ordered by node number
-	Annotations = Annotations[order(as.numeric(Annotations$node), na.last=FALSE),]
+	Annotations = 
+		Annotations[ order( as.numeric( Annotations$node ), na.last=FALSE ), ]
 
 	# Retain only the annotations for internal nodes
-	Annotations = Annotations[ (length(tree@phylo$tip.label)+1):nrow(Annotations), ]
+	Annotations = 
+		Annotations[ ( length( tree@phylo$tip.label ) + 1 ):nrow( Annotations ), ]
 
-	labels = dataframe_to_node_labels(Annotations)
+	labels = dataframe_to_node_labels( Annotations )
 
 	# Names don't necessarilly reflect node numbers, get rid of them
 	# to avoid later confusion
-	names(labels) = NULL
+	names( labels ) = NULL
 
 	tree@phylo$node.label = labels
 
 
 	# Parse node labels for tips and internal nodes from phylo
-	phy_node_names = rep(NA, nrow(tree@nhx_tags))
-	if ("node.label" %in% names(tree@phylo)){
-		phy_node_names = c(tree@phylo$tip.label, tree@phylo$node.label)
+	phy_node_names = rep( NA, nrow( tree@nhx_tags ) )
+	if ( "node.label" %in% names( tree@phylo ) ){
+		phy_node_names = c( tree@phylo$tip.label, tree@phylo$node.label )
 	}
 
 	# Parse sequence id, the integer after @, from the tip names
 	sequence_ids = phy_node_names
-	sequence_ids[ !grepl('@', sequence_ids) ] = NA
-	sequence_ids = as.numeric(sub('^.+@', '', sequence_ids, perl=TRUE))
+	sequence_ids[ !grepl( '@', sequence_ids ) ] = NA
+	sequence_ids = as.numeric( sub( '^.+@', '', sequence_ids, perl=TRUE ) )
 
 	# Parse species, the character string before @, from the tip names
 	species_names = phy_node_names
-	species_names[ !grepl('@', species_names) ] = NA
-	species_names = sub('@.+$', '', species_names, perl=TRUE)
-	species_names = sub('_', ' ', species_names, perl=TRUE)
+	species_names[ !grepl( '@', species_names ) ] = NA
+	species_names = sub( '@.+$', '', species_names, perl=TRUE )
+	species_names = sub( '_', ' ', species_names, perl=TRUE )
 
 	# Add node depth
-	node_depth = ape::node.depth(tree@phylo)
+	node_depth = ape::node.depth( tree@phylo )
 
 	tree@nhx_tags = cbind( 
 		tree@nhx_tags, 
@@ -483,12 +494,12 @@ parse_gene_tree <- function( tree_text ){
 #' and N indicates whether the node is a duplication or not
 #' @return Numeric indicating node support
 #' @export
-node_support <- function( node_name ) {
+node_support = function( node_name ) {
 
-	ns <- NA
-	fields <- strsplit(node_name, ":")[[1]]
-	if (length( fields ) == 2 ){
-		ns = as.numeric( fields[1] )
+	ns = NA
+	fields = strsplit( node_name, ":" )[[ 1 ]]
+	if ( length( fields ) == 2 ){
+		ns = as.numeric( fields[ 1 ] )
 	}
 
 	return( ns )
@@ -500,15 +511,19 @@ node_support <- function( node_name ) {
 #' @param phy The tree, as an ape phylo object. Tip names must have `species@@id` format.
 #' @return Dataframe with one row per tip, a species column, and an id column
 #' @export
-get_tip_info <- function( phy ) {
+get_tip_info = function( phy ) {
 	
-	tips <- phy$tip.label
-	tip_info <- as.data.frame(matrix(unlist(strsplit(tips, split='@')), nrow=length(tips), byrow=T))
-	names(tip_info) <- c("species", "id")
-	tip_info$id <- as.numeric( as.character( tip_info$id ) ) # Change from factors to numeric
+	tips = phy$tip.label
+
+	tip_info = as.data.frame( 
+		matrix( unlist( strsplit( tips, split='@' ) ), nrow=length( tips ), byrow=T ) 
+	)
+
+	names( tip_info ) = c( "species", "id" )
+	tip_info$id = as.numeric( as.character( tip_info$id ) ) # Change from factors to numeric
 
 	# species names have spaces in expression data, remove underscores to make them consistent
-	tip_info[,1] <- sub('_', ' ', tip_info[,1])
+	tip_info[,1] = sub( '_', ' ', tip_info[,1] )
 	
 	return( tip_info )
 
@@ -521,9 +536,9 @@ get_tip_info <- function( phy ) {
 #' @param species Vector of species names
 #' @return logical
 #' @export
-has_species <- function( phy, species ) {
+has_species = function( phy, species ) {
 
-	psp <- get_tip_info( phy )[,1]
+	psp = get_tip_info( phy )[ , 1 ]
 	
 	present = species %in% psp
 	
@@ -537,15 +552,15 @@ has_species <- function( phy, species ) {
 #' @param dge edgeR DGEList object, to which normalizations have been applied
 #' @return matrix of normalized counts
 #' @export
-apply_normalizations <- function(dge){
+apply_normalizations = function( dge ){
 	
 	# Calculate the normalization multipliers, scaled to reads per million
-	norm <- 1e6 / (dge$samples[,"lib.size"] * dge$samples[,"norm.factors"])
+	norm = 1e6 / ( dge$samples[ , "lib.size" ] * dge$samples[ , "norm.factors" ] )
 	
 	# Apply them to the counts
-	norm_counts <- t(t(dge$counts)*norm)
+	norm_counts = t( t( dge$counts )*norm )
 	
-	return(norm_counts)
+	return( norm_counts )
 }
 
 
@@ -554,11 +569,11 @@ apply_normalizations <- function(dge){
 #' @param m The matrix
 #' @param ... additional arguments for image
 #' @export
-plot_matrix <- function(m, ... ) {
+plot_matrix = function( m, ... ) {
 
-	nr <- nrow(m)
-	nc <- ncol(m)
-	graphics::image(1:nc, 1:nr, t(m[nr:1, ]), axes=F,xlab="", ylab="", ... )
+	nr = nrow( m )
+	nc = ncol( m )
+	graphics::image( 1:nc, 1:nr, t( m[ nr:1, ] ), axes=F,xlab="", ylab="", ... )
 }
 
 
@@ -568,7 +583,7 @@ plot_matrix <- function(m, ... ) {
 #' @param nhx The tree, as a ggtree nhx object
 #' @return The subtrees as a list of ape::phylo object
 #' @export
-decompose_orthologs <- function( nhx ){
+decompose_orthologs = function( nhx ){
 
 	# Identify duplicated nodes 
 	duplications = which( nhx@nhx_tags$Ev == "D" )
@@ -576,7 +591,7 @@ decompose_orthologs <- function( nhx ){
 	phy = nhx@phylo
 
 	# Get their immediate descendants, which define the clades we want to excise
-	to_prune = phy$edge[,2][ phy$edge[,1] %in% duplications ]
+	to_prune = phy$edge[ , 2 ][ phy$edge[ , 1 ] %in% duplications ]
 
 	subtrees = hutan::decompose_tree( phy, to_prune )
 
@@ -591,11 +606,15 @@ decompose_orthologs <- function( nhx ){
 #' @param e A list of Expression objects
 #' @return A data frame of summary statistics
 #' @export
-summary_libraries <- function( e ){
+summary_libraries = function( e ){
 
-	library_summary <- plyr::ldply( lapply( e, summarize_libraries ) )[,-1]
-	library_summary <- library_summary[with(library_summary, order(Species, Individual, Treatment)), ]
-	library_summary$Species <- sub("^(\\w)\\w+", "\\1.", library_summary$Species, perl=TRUE) # Shorten species names
+	library_summary = plyr::ldply( lapply( e, summarize_libraries ) )[ , -1 ]
+	
+	library_summary = 
+		library_summary[ with( library_summary, order( Species, Individual, Treatment ) ), ]
+	
+	library_summary$Species = 
+		sub( "^(\\w)\\w+", "\\1.", library_summary$Species, perl=TRUE ) # Shorten species names
 
 	return( library_summary )
 }
@@ -605,9 +624,9 @@ summary_libraries <- function( e ){
 #' @param e A list of Expression objects
 #' @return A data frame of summary statistics
 #' @export
-summary_references <- function( e ){
-	reference_summary <- plyr::ldply( lapply( e, summarize_reference ) )[,-1]
-	reference_summary$Species <- sub("^(\\w)\\w+", "\\1.", reference_summary$Species, perl=TRUE) # Shorten species names
+summary_references = function( e ){
+	reference_summary = plyr::ldply( lapply( e, summarize_reference ) )[ , -1 ]
+	reference_summary$Species = sub( "^(\\w)\\w+", "\\1.", reference_summary$Species, perl=TRUE ) # Shorten species names
 
 	return( reference_summary )
 
@@ -620,30 +639,30 @@ summary_references <- function( e ){
 #' @param nhx A ggtree nhx object
 #' @return A data frame of edge summary statistics
 #' @export
-summarize_edges <- function (nhx) {
+summarize_edges = function ( nhx ) {
 	
 	# Create a data frame of internal node annotations
 	tags = nhx@nhx_tags
-	tags$node = as.numeric(tags$node)
-	tags$S = as.numeric(tags$S)
-	tags$ND = as.numeric(tags$ND)
-	tags = tags[order(tags$node),]
+	tags$node = as.numeric( tags$node )
+	tags$S = as.numeric( tags$S )
+	tags$ND = as.numeric( tags$ND )
+	tags = tags[order( tags$node ),]
 
 	parents = nhx@phylo$edge[,1]
 	children = nhx@phylo$edge[,2]
 
-	terminal = rep(FALSE, nrow(nhx@phylo$edge))
-	terminal[ children <= length(nhx@phylo$tip.label) ] = TRUE
+	terminal = rep( FALSE, nrow( nhx@phylo$edge ) )
+	terminal[ children <= length( nhx@phylo$tip.label ) ] = TRUE
 
 	df = data.frame( 
-		gene_tree = rep(digest::digest(nhx), nrow(nhx@phylo$edge)),
+		gene_tree = rep( digest::digest( nhx ), nrow( nhx@phylo$edge ) ),
 		length = nhx@phylo$edge.length, 
 		Ev_parent = tags$Ev[parents],
-		S_parent  = as.numeric(tags$S[parents]),
-		ND_parent = as.numeric(tags$ND[parents]),
+		S_parent  = as.numeric( tags$S[parents] ),
+		ND_parent = as.numeric( tags$ND[parents] ),
 		Ev_child = tags$Ev[children],
-		S_child  = as.numeric(tags$S[children]),
-		ND_child = as.numeric(tags$ND[children]),
+		S_child  = as.numeric( tags$S[children] ),
+		ND_child = as.numeric( tags$ND[children] ),
 		terminal = terminal,
 		stringsAsFactors = FALSE
 	)
@@ -656,12 +675,12 @@ summarize_edges <- function (nhx) {
 #' @param nhx A ggtree nhx object
 #' @return A data frame of node summary statistics
 #' @export
-summarize_nodes <- function (nhx) {
+summarize_nodes = function ( nhx ) {
 	
 	# Create a data frame of internal node annotations
 	tags = nhx@nhx_tags
 
-	tags = cbind( gene_tree=rep(digest::digest(nhx), nrow(tags)), tags )
+	tags = cbind( gene_tree=rep( digest::digest( nhx ), nrow( tags ) ), tags )
 
 	return( tags )
 }
