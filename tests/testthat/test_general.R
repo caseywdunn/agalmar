@@ -97,6 +97,7 @@ test_that("can summarize edges", {
 
 test_that("can summarize nodes", {
 	nhx = parse_gene_tree( test_phyldog_nhx_text )
-	nodes = summarize_nodes(nhx)
-	expect_equal( nrow(nodes), 31 )
+	nodes = summarize_nodes( nhx, 1e-06 )
+	expect_equal( nrow( nodes ), 31 )
+	expect_equal( sum( nodes$default_length ), 5 )
 })

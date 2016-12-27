@@ -4,10 +4,13 @@
 \alias{summarize_nodes}
 \title{Create a data frame with summary statistics for nodes in a phyldog NHX tree}
 \usage{
-summarize_nodes(nhx)
+summarize_nodes(nhx, default_length_val = NA)
 }
 \arguments{
 \item{nhx}{A ggtree nhx object}
+
+\item{default_length_val}{The default length of branches, used to determine
+if a node has descendant branches with default length}
 }
 \value{
 A data frame of node summary statistics

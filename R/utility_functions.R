@@ -637,9 +637,10 @@ summary_references = function( e ){
 #' Create a data frame with summary statistics for edges in a phyldog NHX tree
 #' 
 #' @param nhx A ggtree nhx object
+#' @param default_length_val The default length of branches
 #' @return A data frame of edge summary statistics
 #' @export
-summarize_edges = function ( nhx ) {
+summarize_edges = function ( nhx, default_length_val=NA ) {
 	
 	# Create a data frame of internal node annotations
 	tags = nhx@nhx_tags
@@ -664,8 +665,13 @@ summarize_edges = function ( nhx ) {
 		S_child  = as.numeric( tags$S[children] ),
 		ND_child = as.numeric( tags$ND[children] ),
 		terminal = terminal,
+		default_length = FALSE,
 		stringsAsFactors = FALSE
 	)
+
+	if ( ! is.na( default_length_val ) ){
+		df$default_length = ( nhx@phylo$edge.length == default_length_val )
+	}
 
 	return( df )
 }
@@ -673,14 +679,27 @@ summarize_edges = function ( nhx ) {
 #' Create a data frame with summary statistics for nodes in a phyldog NHX tree
 #' 
 #' @param nhx A ggtree nhx object
+#' @param default_length_val The default length of branches, used to determine
+#' if a node has descendant branches with default length
 #' @return A data frame of node summary statistics
 #' @export
-summarize_nodes = function ( nhx ) {
+summarize_nodes = function ( nhx, default_length_val=NA ) {
 	
 	# Create a data frame of internal node annotations
-	tags = nhx@nhx_tags
+	tags = cbind( 
+		gene_tree= digest::digest( nhx ), 
+		nhx@nhx_tags
+	)
 
-	tags = cbind( gene_tree=rep( digest::digest( nhx ), nrow( tags ) ), tags )
+	# Add a boolean column that indicates if nodes are parents to
+	# edges with default length 
+	tags$default_length = FALSE
+	if ( ! is.na( default_length_val ) ){
+		default_edges = ( nhx@phylo$edge.length == default_length_val )
+		parent_nodes = nhx@phylo$edge[ , 1 ]
+		default_nodes = parent_nodes[ default_edges ]
+		tags$default_length[ default_nodes ] = TRUE
+	}
 
 	return( tags )
 }

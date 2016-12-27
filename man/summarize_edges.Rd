@@ -4,10 +4,12 @@
 \alias{summarize_edges}
 \title{Create a data frame with summary statistics for edges in a phyldog NHX tree}
 \usage{
-summarize_edges(nhx)
+summarize_edges(nhx, default_length_val = NA)
 }
 \arguments{
 \item{nhx}{A ggtree nhx object}
+
+\item{default_length_val}{The default length of branches}
 }
 \value{
 A data frame of edge summary statistics
