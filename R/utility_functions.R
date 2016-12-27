@@ -677,7 +677,7 @@ summarize_edges = function ( nhx, default_length_val=NA ) {
 	)
 
 	if ( ! is.na( default_length_val ) ){
-		df$default_length = ( nhx@phylo$edge.length == default_length_val )
+		df$default_length = dplyr::near( nhx@phylo$edge.length, default_length_val )
 	}
 
 	return( df )
@@ -702,7 +702,7 @@ summarize_nodes = function ( nhx, default_length_val=NA ) {
 	# edges with default length 
 	tags$default_length = FALSE
 	if ( ! is.na( default_length_val ) ){
-		default_edges = ( nhx@phylo$edge.length == default_length_val )
+		default_edges = dplyr::near( nhx@phylo$edge.length, default_length_val )
 		parent_nodes = nhx@phylo$edge[ , 1 ]
 		default_nodes = parent_nodes[ default_edges ]
 		tags$default_length[ default_nodes ] = TRUE
