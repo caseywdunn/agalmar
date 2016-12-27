@@ -12,13 +12,15 @@ Collate:
     'utility_functions.R'
     'agalmar.R'
     'data.R'
+    'imports.R'
 Imports:
     hutan,
     edgeR,
     ape (>= 3.3),
     ggtree,
     DESeq2,
-    plyr,
+    dplyr,
+    magrittr,
     digest,
     methods,
     graphics

@@ -1,6 +1,5 @@
 # Make S3 style classes available to S4 code
 
-
 #' "DGEList" class
 #'
 #' @name DGEList-class
@@ -258,6 +257,10 @@ setMethod( "summarize_libraries", signature( object = "Expression" ),
 			)
 		}
 
+		# Convert all factor columns to strings
+		library_summary %<>% 
+			dplyr::mutate_if( is.factor, as.character )
+
 		return( library_summary )
 	}
 )
@@ -277,6 +280,10 @@ setMethod( "summarize_reference", signature( object = "Expression" ),
 			Genes = nrow( object@x )
 
 		)
+
+		# Convert all factor columns to strings
+		reference_summary %<>% 
+			dplyr::mutate_if( is.factor, as.character )
 
 		return( reference_summary )
 	}
@@ -608,7 +615,7 @@ decompose_orthologs = function( nhx ){
 #' @export
 summary_libraries = function( e ){
 
-	library_summary = plyr::ldply( lapply( e, summarize_libraries ) )[ , -1 ]
+	library_summary = dplyr::bind_rows( lapply( e, summarize_libraries ) )
 	
 	library_summary = 
 		library_summary[ with( library_summary, order( Species, Individual, Treatment ) ), ]
@@ -625,7 +632,7 @@ summary_libraries = function( e ){
 #' @return A data frame of summary statistics
 #' @export
 summary_references = function( e ){
-	reference_summary = plyr::ldply( lapply( e, summarize_reference ) )[ , -1 ]
+	reference_summary = dplyr::bind_rows( lapply( e, summarize_reference ) )
 	reference_summary$Species = sub( "^(\\w)\\w+", "\\1.", reference_summary$Species, perl=TRUE ) # Shorten species names
 
 	return( reference_summary )
