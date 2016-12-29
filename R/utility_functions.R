@@ -708,5 +708,8 @@ summarize_nodes = function ( nhx, default_length_val=NA ) {
 		tags$default_length[ default_nodes ] = TRUE
 	}
 
+	tags %<>% 
+		dplyr::mutate_if( is.factor, as.character )
+
 	return( tags )
 }
