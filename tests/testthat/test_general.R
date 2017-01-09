@@ -26,7 +26,7 @@ test_that("can parse phyldog nhx tree", {
 	nhx = parse_gene_tree( test_phyldog_nhx_text )
 
 	# Test that NHX tags correctly parsed into nhx object
-	tags = nhx@nhx_tags
+	tags = nhx@data
 	tags$node = as.numeric(tags$node)
 	tags = tags[ !is.na(tags$node), ]
 	tags = tags[ tags$node > length(nhx@phylo$tip.label), ] # Consider internal nodes o

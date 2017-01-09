@@ -8,7 +8,7 @@ r_packages:
 
 r_github_packages:
   - caseywdunn/hutan
-  - GuangchuangYu/ggtree
+  - GuangchuangYu/treeio
 
 bioc_packages:
   - edgeR

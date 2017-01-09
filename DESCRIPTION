@@ -17,7 +17,7 @@ Imports:
     hutan,
     edgeR,
     ape (>= 3.3),
-    ggtree,
+    treeio,
     DESeq2,
     dplyr,
     magrittr,

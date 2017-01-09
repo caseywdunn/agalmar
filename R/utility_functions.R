@@ -376,7 +376,7 @@ get_lane = function( header ) {
 #' @param df Data frame
 #' return character A vector of node label names
 dataframe_to_node_labels = function( df ){
-	df$node = NULL # The nodes column is added by ggtree, go ahead and remove it
+	df$node = NULL # The nodes column is added by treeio, go ahead and remove it
 	fields = names( df )
 	fields = paste( ":", fields, sep="" )
 	fields = paste( fields, "=", sep="" )
@@ -421,7 +421,7 @@ parse_gene_tree = function( tree_text ){
 
 	tree_tc = textConnection( tree_text )
 	tryCatch(
-		tree <- ggtree::read.nhx( tree_tc ),
+		tree <- treeio::read.nhx( tree_tc ),
 		error = function( c ){
 			c$message = paste0( c$message, " (could not parse tree ", tree_text, ")" )
 			stop( c )
@@ -429,21 +429,21 @@ parse_gene_tree = function( tree_text ){
 	)
 	close( tree_tc )
 
-	if ( "D" %in% names( tree@nhx_tags ) ){
+	if ( "D" %in% names( tree@data ) ){
 		# Notung style annotations, convert speciation annotation to that of phyldog
-		colnames( tree@nhx_tags )[which( names( tree@nhx_tags ) == "D" )] = "Ev"
-		tree@nhx_tags$Ev[ tree@nhx_tags$Ev == "Y" ] = "D"
-		tree@nhx_tags$Ev[ tree@nhx_tags$Ev == "N" ] = "S"
+		colnames( tree@data )[which( names( tree@data ) == "D" )] = "Ev"
+		tree@data$Ev[ tree@data$Ev == "Y" ] = "D"
+		tree@data$Ev[ tree@data$Ev == "N" ] = "S"
 	}
-	else if ( "Ev" %in% names( tree@nhx_tags ) ) {
+	else if ( "Ev" %in% names( tree@data ) ) {
 		# Phyldog style annotations
 		# Retype numeric fields
-		tree@nhx_tags$S =  as.numeric( tree@nhx_tags$S )
-		tree@nhx_tags$ND = as.numeric( tree@nhx_tags$ND )
+		tree@data$S =  as.numeric( tree@data$S )
+		tree@data$ND = as.numeric( tree@data$ND )
 	}
 
 	# Parse some NHX fields into tree labels
-	Annotations = tree@nhx_tags
+	Annotations = tree@data
 
 	# Make sure they are ordered by node number
 	Annotations = 
@@ -463,7 +463,7 @@ parse_gene_tree = function( tree_text ){
 
 
 	# Parse node labels for tips and internal nodes from phylo
-	phy_node_names = rep( NA, nrow( tree@nhx_tags ) )
+	phy_node_names = rep( NA, nrow( tree@data ) )
 	if ( "node.label" %in% names( tree@phylo ) ){
 		phy_node_names = c( tree@phylo$tip.label, tree@phylo$node.label )
 	}
@@ -482,8 +482,8 @@ parse_gene_tree = function( tree_text ){
 	# Add node depth
 	node_depth = ape::node.depth( tree@phylo )
 
-	tree@nhx_tags = cbind( 
-		tree@nhx_tags, 
+	tree@data = cbind( 
+		tree@data, 
 		phy_node_names=phy_node_names, 
 		species=species_names, 
 		sequence_ids=sequence_ids, 
@@ -587,13 +587,13 @@ plot_matrix = function( m, ... ) {
 #' Decomposes a gene tree into a list of subtrees that have no duplication events. Assumes notung
 #' style node annotations.
 #' 
-#' @param nhx The tree, as a ggtree nhx object
+#' @param nhx The tree, as a treeio nhx object
 #' @return The subtrees as a list of ape::phylo object
 #' @export
 decompose_orthologs = function( nhx ){
 
 	# Identify duplicated nodes 
-	duplications = which( nhx@nhx_tags$Ev == "D" )
+	duplications = which( nhx@data$Ev == "D" )
 
 	phy = nhx@phylo
 
@@ -643,14 +643,14 @@ summary_references = function( e ){
 
 #' Create a data frame with summary statistics for edges in a phyldog NHX tree
 #' 
-#' @param nhx A ggtree nhx object
+#' @param nhx A treeio nhx object
 #' @param default_length_val The default length of branches
 #' @return A data frame of edge summary statistics
 #' @export
 summarize_edges = function ( nhx, default_length_val=NA ) {
 	
 	# Create a data frame of internal node annotations
-	tags = nhx@nhx_tags
+	tags = nhx@data
 	tags$node = as.numeric( tags$node )
 	tags$S = as.numeric( tags$S )
 	tags$ND = as.numeric( tags$ND )
@@ -685,7 +685,7 @@ summarize_edges = function ( nhx, default_length_val=NA ) {
 
 #' Create a data frame with summary statistics for nodes in a phyldog NHX tree
 #' 
-#' @param nhx A ggtree nhx object
+#' @param nhx A treeio nhx object
 #' @param default_length_val The default length of branches, used to determine
 #' if a node has descendant branches with default length
 #' @return A data frame of node summary statistics
@@ -695,7 +695,7 @@ summarize_nodes = function ( nhx, default_length_val=NA ) {
 	# Create a data frame of internal node annotations
 	tags = cbind( 
 		gene_tree= digest::digest( nhx ), 
-		nhx@nhx_tags
+		nhx@data
 	)
 
 	# Add a boolean column that indicates if nodes are parents to
