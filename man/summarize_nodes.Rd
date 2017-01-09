@@ -7,7 +7,7 @@
 summarize_nodes(nhx, default_length_val = NA)
 }
 \arguments{
-\item{nhx}{A ggtree nhx object}
+\item{nhx}{A treeio nhx object}
 
 \item{default_length_val}{The default length of branches, used to determine
 if a node has descendant branches with default length}

@@ -8,7 +8,7 @@ style node annotations.}
 decompose_orthologs(nhx)
 }
 \arguments{
-\item{nhx}{The tree, as a ggtree nhx object}
+\item{nhx}{The tree, as a treeio nhx object}
 }
 \value{
 The subtrees as a list of ape::phylo object
