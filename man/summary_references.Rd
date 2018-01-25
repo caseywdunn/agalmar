@@ -15,4 +15,3 @@ A data frame of summary statistics
 \description{
 Create a data frame with summary statistics for reference sequences
 }
-

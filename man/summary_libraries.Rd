@@ -17,4 +17,3 @@ A data frame of summary statistics
 Create a data frame with summary statistics for expression
 libraries
 }
-

@@ -18,4 +18,3 @@ A DESeqDataSet object
 \description{
 Creates a DESeqDataSet object
 }
-

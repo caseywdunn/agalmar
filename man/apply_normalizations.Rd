@@ -15,4 +15,3 @@ matrix of normalized counts
 \description{
 Takes a DGEList object, and returns a matrix of normalized counts
 }
-

@@ -99,7 +99,8 @@ setClass(
 		blast_hit =  "vector",
 		rRNA = "vector",
 		protein = "vector",
-		x = "matrix"
+		x = "matrix",
+		fpkm= "matrix"
 	)
 )
 
@@ -140,10 +141,15 @@ Expression = function( data_list ) {
 		object@blast_hit = data_list$blast_title
 	}
 	
+	# Parse fpkm values
+	object@fpkm =data_list$fpkm
+	rownames( object@fpkm ) = data_list$sequence_id
+	colnames( object@fpkm ) = object@library_id
+
 	# Parse counts matrix
 	object@x = data_list$count
 	if ( is.null( dim( object@x ) ) ){
-		# if there is a single samply, then x is a vector rather than an array, 
+		# if there is a single sample, then x is a vector rather than an array, 
 		# which messes things up for row sampling later
 		dim( object@x ) = c( length( object@x ), 1 )
 	}
@@ -152,7 +158,7 @@ Expression = function( data_list ) {
 	
 	# Parse the lengths, if present
 	if ( exists( 'length', where=data_list ) ){
-		object@lengths = data_list$length
+		object@lengths = data_list$gene_length
 	} else{
 		empty_lengths = rep( NA, length( object@x ) )
 		dim( empty_lengths ) = dim( object@x )
@@ -177,12 +183,12 @@ Expression = function( data_list ) {
 	# Identify protein coding genes
 	protein_coding = ( object@molecule_type == 'P' )
 	object@protein = colSums( object@x[protein_coding,] ) / totals
-
-	# Identify rows that have at last 2 libraries with count greater than 0
-	passes_sampling_criterion = rowSums( object@x > 0 ) > 2
-
+	
 	# Exclude plastid genomes
 	genome_keep = ( object@genome_type != 'P' ) & ( object@genome_type != 'M' )
+
+	# Identify rows that have at least 2 libraries with count greater than 0
+	passes_sampling_criterion = rowSums( object@x > 0 ) > 2
 	
 	# Create a vector of rows to keep
 	keep = protein_coding & genome_keep & passes_sampling_criterion
@@ -193,6 +199,7 @@ Expression = function( data_list ) {
 	object@genome_type = object@genome_type[ keep ]
 	object@molecule_type = object@molecule_type[ keep ]
 	object@blast_hit = object@blast_hit[ keep ]
+	object@fpkm = object@fpkm[ keep, ]
 
 	# Prepare EdgeR DGE object
 	object@edgeR = edgeR::DGEList( counts=object@x, group=object@treatment )

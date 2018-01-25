@@ -15,4 +15,3 @@ phy The tree, as an ape phylo object
 \description{
 Parses text to a gene tree
 }
-

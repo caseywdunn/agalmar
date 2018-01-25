@@ -16,4 +16,3 @@ Expression object
 \description{
 Summarize expression libraries
 }
-

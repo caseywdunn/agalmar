@@ -17,4 +17,3 @@ logical
 \description{
 Returns true if all species are in the tree tips
 }
-

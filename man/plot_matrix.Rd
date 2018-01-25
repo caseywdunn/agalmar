@@ -14,4 +14,3 @@ plot_matrix(m, ...)
 \description{
 Plots a matrix
 }
-
