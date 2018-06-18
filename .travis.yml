@@ -8,11 +8,11 @@ r_packages:
 
 r_github_packages:
   - caseywdunn/hutan
-  - GuangchuangYu/treeio
 
 bioc_packages:
   - edgeR
   - DESeq2
+  - treeio
 
 notifications:
   slack: dunnlab:Aqc37nw3FTY4zWIMLH514Ad0

@@ -17,4 +17,3 @@ A data frame of edge summary statistics
 \description{
 Create a data frame with summary statistics for edges in a phyldog NHX tree
 }
-

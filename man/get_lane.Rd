@@ -15,4 +15,3 @@ lane character strings
 \description{
 Get lane from Illumina fastq sequence header
 }
-

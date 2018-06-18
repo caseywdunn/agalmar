@@ -10,4 +10,3 @@ The agalmar package contains a collection of tools for analyzing
 expression and phylogenetic data exported from Agalma.
 See https://bitbucket.org/caseywdunn/agalma
 }
-

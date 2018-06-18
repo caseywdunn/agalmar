@@ -14,4 +14,3 @@ janedoe
 Expression data for different tissues from an animal
 }
 \keyword{datasets}
-

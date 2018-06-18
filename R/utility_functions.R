@@ -9,63 +9,63 @@ setOldClass( c( "DGEList" ) )
 # Classes
 
 #' Summarize expression libraries
-#' 
+#'
 #' @param object An Expression object
 #' @return A data frame that summarizes each library with expression data in the
 #' Expression object
 #' @export
 setGeneric (
-	name = "summarize_libraries", 
-	def = function( object ) 
+	name = "summarize_libraries",
+	def = function( object )
 		{ standardGeneric( "summarize_libraries" ) }
 )
 
 
 #' Summarize reference sequences
-#' 
+#'
 #' @param object An Expression object
 #' @return A data frame that summarizes the reference sequences in the
 #' Expression object
 #' @export
 setGeneric (
-	name = "summarize_reference", 
-	def = function( object ) 
+	name = "summarize_reference",
+	def = function( object )
 		{ standardGeneric( "summarize_reference" ) }
 )
 
 
 
 #' Get species
-#' 
+#'
 #' @param object An Expression object
 #' @return Character string with species
 #' @export
 setGeneric (
-	name = "species", 
-	def = function( object ) 
+	name = "species",
+	def = function( object )
 		{ standardGeneric( "species" ) }
 )
 
 
 #' Creates a DESeqDataSet object
-#' 
+#'
 #' @param object An Expression object
-#' @param design a formula that explains the project design 
+#' @param design a formula that explains the project design
 #' @return A DESeqDataSet object
 #' @export
 setGeneric (
-	name = "create_DESeq2", 
-	def = function( object, design ) 
+	name = "create_DESeq2",
+	def = function( object, design )
 		{ standardGeneric( "create_DESeq2" ) }
 )
 
 
 #' An S4 class to represent gene expression data for multiple samples
-#' for a given species. Assumes that all expession data are derived 
+#' for a given species. Assumes that all expession data are derived
 #' from mapping to the same reference. Applies to data for g genes
 #' across s samples (ie, sequenced libraries).
 #'
-#' The fields that apply to the s samples correspond to those 
+#' The fields that apply to the s samples correspond to those
 #'
 #' @slot species  The species
 #' @slot edgeR  An edgeR DGEList object holding data for all samples. Expression
@@ -86,7 +86,7 @@ setGeneric (
 setClass(
 	Class = "Expression",
 	representation = representation(
-		species = "character", 
+		species = "character",
 		edgeR = "DGEList",
 		lengths = "matrix",
 		individual = "vector",
@@ -99,36 +99,38 @@ setClass(
 		blast_hit =  "vector",
 		rRNA = "vector",
 		protein = "vector",
-		x = "matrix"
+		x = "matrix",
+		fpkm= "matrix",
+		tpm="matrix"
 	)
 )
 
 
-#' Construct an Expression object from list of experiment data and metadata 
+#' Construct an Expression object from list of experiment data and metadata
 #' provided by Agalma.
-#' 
+#'
 #' @param data_list A list containing the expression data
 #' @return An Expression object
 #' @export
 Expression = function( data_list ) {
 	object = methods::new( "Expression" )
-	
+
 	object@species = data_list$species
 
 
-	
+
 	# Parse column annotations
 	object@individual = as.factor( data_list$individual )
 	object@treatment  = as.factor( data_list$treatment )
 	object@id  = as.factor( data_list$id )
 	object@library_id = as.factor( data_list$library_id )
 	object@sample_prep = data_list$sample_prep
-	
+
 	# Simplify sample prep names
 	object@sample_prep[grep( "Illumina TruSeq", object@sample_prep )] = "Illumina TruSeq"
 	object@sample_prep[grep( "Illumina mRNA-Seq", object@sample_prep )] = "Illumina mRNA-Seq"
 	object@sample_prep[grep( "NEBNext", object@sample_prep )] = "NEBNext"
-	
+
 	# Parse row annotations
 	object@genome_type = as.factor( data_list$genome_type )
 	object@molecule_type = as.factor( data_list$molecule_type )
@@ -139,20 +141,30 @@ Expression = function( data_list ) {
 	} else {
 		object@blast_hit = data_list$blast_title
 	}
-	
+
+	# Parse fpkm values
+	object@fpkm =data_list$fpkm
+	rownames( object@fpkm ) = data_list$sequence_id
+	colnames( object@fpkm ) = object@library_id
+
+	# Parse tpm values
+	object@tpm =data_list$tpm
+	rownames( object@tpm ) = data_list$sequence_id
+	colnames( object@tpm ) = object@library_id
+
 	# Parse counts matrix
 	object@x = data_list$count
 	if ( is.null( dim( object@x ) ) ){
-		# if there is a single samply, then x is a vector rather than an array, 
+		# if there is a single sample, then x is a vector rather than an array,
 		# which messes things up for row sampling later
 		dim( object@x ) = c( length( object@x ), 1 )
 	}
 	rownames( object@x ) = data_list$sequence_id
 	colnames( object@x ) = object@library_id
-	
+
 	# Parse the lengths, if present
 	if ( exists( 'length', where=data_list ) ){
-		object@lengths = data_list$length
+		object@lengths = data_list$gene_length
 	} else{
 		empty_lengths = rep( NA, length( object@x ) )
 		dim( empty_lengths ) = dim( object@x )
@@ -162,7 +174,7 @@ Expression = function( data_list ) {
 
 	# Calculate total counts, including rRNA
 	totals = colSums( object@x )
-	
+
 	# Quantify rRNA and identify non ribosomal RNA
 	rrna = object@molecule_type %in% c( 'L','S' )
 
@@ -173,35 +185,37 @@ Expression = function( data_list ) {
 	} else {
 		object@rRNA = colSums( object@x[rrna,] ) / totals
 	}
-	
+
 	# Identify protein coding genes
 	protein_coding = ( object@molecule_type == 'P' )
 	object@protein = colSums( object@x[protein_coding,] ) / totals
 
-	# Identify rows that have at last 2 libraries with count greater than 0
-	passes_sampling_criterion = rowSums( object@x > 0 ) > 2
-
 	# Exclude plastid genomes
 	genome_keep = ( object@genome_type != 'P' ) & ( object@genome_type != 'M' )
-	
+
+	# Identify rows that have at least 2 libraries with count greater than 0
+	passes_sampling_criterion = rowSums( object@x > 0 ) > 2
+
 	# Create a vector of rows to keep
 	keep = protein_coding & genome_keep & passes_sampling_criterion
-	
+
 	# Subsample matrix and row annotations
 	object@x = object@x[ keep, ]
 	object@lengths = object@lengths[ keep, ]
 	object@genome_type = object@genome_type[ keep ]
 	object@molecule_type = object@molecule_type[ keep ]
 	object@blast_hit = object@blast_hit[ keep ]
+	object@fpkm = object@fpkm[ keep, ]
+	object@tpm = object@tpm[ keep, ]
 
 	# Prepare EdgeR DGE object
 	object@edgeR = edgeR::DGEList( counts=object@x, group=object@treatment )
 	object@edgeR = edgeR::calcNormFactors( object@edgeR )
-	
+
 	g = nrow( object@x )
 	s = ncol( object@x )
 
-	stopifnot(  
+	stopifnot(
 
 		length( object@individual )    == s,
 		length( object@treatment )     == s,
@@ -221,7 +235,7 @@ Expression = function( data_list ) {
 
 
 #' Summarize expression libraries
-#' 
+#'
 #' @param object An Expression object
 #' @return A data frame that summarizes each library with expression data in the
 #' Expression object
@@ -231,34 +245,34 @@ setMethod( "summarize_libraries", signature( object = "Expression" ),
 
 		# Some json files do not have an id field, need some logic to accommodate this when constructing hte table
 		if ( length( object@id ) < 1 ){
-			library_summary = data.frame( 
-				Species = rep( object@species, length( object@library_id ) ), 
-				Individual = object@individual, 
-				Treatment = object@treatment, 
-				Library = object@library_id, 
-				Preparation = object@sample_prep, 
-				rRNA = object@rRNA, 
-				Protein = object@protein, 
+			library_summary = data.frame(
+				Species = rep( object@species, length( object@library_id ) ),
+				Individual = object@individual,
+				Treatment = object@treatment,
+				Library = object@library_id,
+				Preparation = object@sample_prep,
+				rRNA = object@rRNA,
+				Protein = object@protein,
 				Reads = colSums( object@edgeR$counts )
 			)
 		}
 		else{
 			library_summary = data.frame(
-				Species = rep( object@species, length( object@library_id ) ), 
-				Individual = object@individual, 
-				Treatment = object@treatment, 
-				Library = object@library_id, 
-				Preparation = object@sample_prep, 
-				rRNA = object@rRNA, 
-				Protein = object@protein, 
-				Reads = colSums( object@edgeR$counts ), 
-				Run = as.factor( sapply( object@id, get_run ) ), 
+				Species = rep( object@species, length( object@library_id ) ),
+				Individual = object@individual,
+				Treatment = object@treatment,
+				Library = object@library_id,
+				Preparation = object@sample_prep,
+				rRNA = object@rRNA,
+				Protein = object@protein,
+				Reads = colSums( object@edgeR$counts ),
+				Run = as.factor( sapply( object@id, get_run ) ),
 				Lane = as.factor( sapply( object@id, get_lane ) )
 			)
 		}
 
 		# Convert all factor columns to strings
-		library_summary %<>% 
+		library_summary %<>%
 			dplyr::mutate_if( is.factor, as.character )
 
 		return( library_summary )
@@ -267,7 +281,7 @@ setMethod( "summarize_libraries", signature( object = "Expression" ),
 
 
 #' Summarize reference sequences
-#' 
+#'
 #' @param object An Expression object
 #' @return A data frame that summarizes the reference sequences in the
 #' Expression object
@@ -282,7 +296,7 @@ setMethod( "summarize_reference", signature( object = "Expression" ),
 		)
 
 		# Convert all factor columns to strings
-		reference_summary %<>% 
+		reference_summary %<>%
 			dplyr::mutate_if( is.factor, as.character )
 
 		return( reference_summary )
@@ -290,39 +304,39 @@ setMethod( "summarize_reference", signature( object = "Expression" ),
 )
 
 #' Get the species
-#' 
+#'
 #' @param object An Expression object
 #' @return Species name
 #' @export
 setMethod( "species", signature( object = "Expression" ),
 	function( object ) {
-				
+
 		return( object@species )
 	}
 )
 
 
 #' Creates a DESeqDataSet object
-#' 
+#'
 #' @param object An Expression object
-#' @param design a formula that explains the project design 
+#' @param design a formula that explains the project design
 #' @return A DESeqDataSet object
 #' @export
 setMethod( "create_DESeq2", signature( object = "Expression", design = "formula" ),
 	function( object, design ) {
 
-		colData = data.frame( 
-			treatment = object@treatment, 
-			individual = object@individual, 
-			row.names = object@library_id 
+		colData = data.frame(
+			treatment = object@treatment,
+			individual = object@individual,
+			row.names = object@library_id
 		)
 
-		dds = DESeq2::DESeqDataSetFromMatrix( 
+		dds = DESeq2::DESeqDataSetFromMatrix(
 				countData = floor( object@x ),
 				colData = colData,
-				design = design 
+				design = design
 	        )
-	
+
 		return( dds[ rowSums( DESeq2::counts( dds ) ) > 1, ] )
 	}
 )
@@ -333,7 +347,7 @@ setMethod( "create_DESeq2", signature( object = "Expression", design = "formula"
 # Functions
 
 #' Get run from Illumina fastq sequence header
-#' 
+#'
 #' @param header character strings
 #' @return run character strings
 #' @export
@@ -349,14 +363,14 @@ get_run = function( header ) {
 		fields = unlist( fields )
 		run = paste( fields[1], fields[2], sep = "-" )
     }
-    
+
 	return( run )
 }
 
 
 
 #' Get lane from Illumina fastq sequence header
-#' 
+#'
 #' @param header character strings
 #' @return lane character strings
 #' @export
@@ -381,9 +395,9 @@ dataframe_to_node_labels = function( df ){
 	fields = paste( ":", fields, sep="" )
 	fields = paste( fields, "=", sep="" )
 
-	labels = apply( 
-		df, 
-		1, 
+	labels = apply(
+		df,
+		1,
 		function( x ) paste( c( "[&&NHX", paste( fields, x, sep="" ), "]" ), collapse='' )
 	)
 
@@ -413,8 +427,8 @@ nhx_label_to_list = function( label ){
 
 
 #' Parses text to a gene tree
-#' 
-#' @param tree_text Text representation of a tree in nhx format with notung or phyldog fields. 
+#'
+#' @param tree_text Text representation of a tree in nhx format with notung or phyldog fields.
 #' @return phy The tree, as an ape phylo object
 #' @export
 parse_gene_tree = function( tree_text ){
@@ -446,11 +460,11 @@ parse_gene_tree = function( tree_text ){
 	Annotations = tree@data
 
 	# Make sure they are ordered by node number
-	Annotations = 
+	Annotations =
 		Annotations[ order( as.numeric( Annotations$node ), na.last=FALSE ), ]
 
 	# Retain only the annotations for internal nodes
-	Annotations = 
+	Annotations =
 		Annotations[ ( length( tree@phylo$tip.label ) + 1 ):nrow( Annotations ), ]
 
 	labels = dataframe_to_node_labels( Annotations )
@@ -482,11 +496,11 @@ parse_gene_tree = function( tree_text ){
 	# Add node depth
 	node_depth = ape::node.depth( tree@phylo )
 
-	tree@data = cbind( 
-		tree@data, 
-		phy_node_names=phy_node_names, 
-		species=species_names, 
-		sequence_ids=sequence_ids, 
+	tree@data = cbind(
+		tree@data,
+		phy_node_names=phy_node_names,
+		species=species_names,
+		sequence_ids=sequence_ids,
 		node_depth=node_depth,
 		stringsAsFactors=FALSE
 		)
@@ -496,8 +510,8 @@ parse_gene_tree = function( tree_text ){
 
 
 #' Parse support from node name
-#' 
-#' @param node_name A character string of format '83:N', where '83' is node support  
+#'
+#' @param node_name A character string of format '83:N', where '83' is node support
 #' and N indicates whether the node is a duplication or not
 #' @return Numeric indicating node support
 #' @export
@@ -514,16 +528,16 @@ node_support = function( node_name ) {
 
 
 #' Parse species and sequence id from a phy
-#' 
+#'
 #' @param phy The tree, as an ape phylo object. Tip names must have `species@@id` format.
 #' @return Dataframe with one row per tip, a species column, and an id column
 #' @export
 get_tip_info = function( phy ) {
-	
+
 	tips = phy$tip.label
 
-	tip_info = as.data.frame( 
-		matrix( unlist( strsplit( tips, split='@' ) ), nrow=length( tips ), byrow=T ) 
+	tip_info = as.data.frame(
+		matrix( unlist( strsplit( tips, split='@' ) ), nrow=length( tips ), byrow=T )
 	)
 
 	names( tip_info ) = c( "species", "id" )
@@ -531,14 +545,14 @@ get_tip_info = function( phy ) {
 
 	# species names have spaces in expression data, remove underscores to make them consistent
 	tip_info[,1] = sub( '_', ' ', tip_info[,1] )
-	
+
 	return( tip_info )
 
 }
 
 
 #' Returns true if all species are in the tree tips
-#' 
+#'
 #' @param phy The tree, as an ape phylo object
 #' @param species Vector of species names
 #' @return logical
@@ -546,33 +560,33 @@ get_tip_info = function( phy ) {
 has_species = function( phy, species ) {
 
 	psp = get_tip_info( phy )[ , 1 ]
-	
+
 	present = species %in% psp
-	
-	return( all( present ) )  
-	
+
+	return( all( present ) )
+
 }
 
 
 #' Takes a DGEList object, and returns a matrix of normalized counts
-#' 
+#'
 #' @param dge edgeR DGEList object, to which normalizations have been applied
 #' @return matrix of normalized counts
 #' @export
 apply_normalizations = function( dge ){
-	
+
 	# Calculate the normalization multipliers, scaled to reads per million
 	norm = 1e6 / ( dge$samples[ , "lib.size" ] * dge$samples[ , "norm.factors" ] )
-	
+
 	# Apply them to the counts
 	norm_counts = t( t( dge$counts )*norm )
-	
+
 	return( norm_counts )
 }
 
 
 #' Plots a matrix
-#' 
+#'
 #' @param m The matrix
 #' @param ... additional arguments for image
 #' @export
@@ -586,13 +600,13 @@ plot_matrix = function( m, ... ) {
 
 #' Decomposes a gene tree into a list of subtrees that have no duplication events. Assumes notung
 #' style node annotations.
-#' 
+#'
 #' @param nhx The tree, as a treeio nhx object
 #' @return The subtrees as a list of ape::phylo object
 #' @export
 decompose_orthologs = function( nhx ){
 
-	# Identify duplicated nodes 
+	# Identify duplicated nodes
 	duplications = which( nhx@data$Ev == "D" )
 
 	phy = nhx@phylo
@@ -609,25 +623,25 @@ decompose_orthologs = function( nhx ){
 
 #' Create a data frame with summary statistics for expression
 #' libraries
-#' 
+#'
 #' @param e A list of Expression objects
 #' @return A data frame of summary statistics
 #' @export
 summary_libraries = function( e ){
 
 	library_summary = dplyr::bind_rows( lapply( e, summarize_libraries ) )
-	
-	library_summary = 
+
+	library_summary =
 		library_summary[ with( library_summary, order( Species, Individual, Treatment ) ), ]
-	
-	library_summary$Species = 
+
+	library_summary$Species =
 		sub( "^(\\w)\\w+", "\\1.", library_summary$Species, perl=TRUE ) # Shorten species names
 
 	return( library_summary )
 }
 
 #' Create a data frame with summary statistics for reference sequences
-#' 
+#'
 #' @param e A list of Expression objects
 #' @return A data frame of summary statistics
 #' @export
@@ -642,13 +656,13 @@ summary_references = function( e ){
 
 
 #' Create a data frame with summary statistics for edges in a phyldog NHX tree
-#' 
+#'
 #' @param nhx A treeio nhx object
 #' @param default_length_val The default length of branches
 #' @return A data frame of edge summary statistics
 #' @export
 summarize_edges = function ( nhx, default_length_val=NA ) {
-	
+
 	# Create a data frame of internal node annotations
 	tags = nhx@data
 	tags$node = as.numeric( tags$node )
@@ -662,9 +676,9 @@ summarize_edges = function ( nhx, default_length_val=NA ) {
 	terminal = rep( FALSE, nrow( nhx@phylo$edge ) )
 	terminal[ children <= length( nhx@phylo$tip.label ) ] = TRUE
 
-	df = data.frame( 
+	df = data.frame(
 		gene_tree = rep( digest::digest( nhx ), nrow( nhx@phylo$edge ) ),
-		length = nhx@phylo$edge.length, 
+		length = nhx@phylo$edge.length,
 		Ev_parent = tags$Ev[parents],
 		S_parent  = as.numeric( tags$S[parents] ),
 		ND_parent = as.numeric( tags$ND[parents] ),
@@ -684,22 +698,22 @@ summarize_edges = function ( nhx, default_length_val=NA ) {
 }
 
 #' Create a data frame with summary statistics for nodes in a phyldog NHX tree
-#' 
+#'
 #' @param nhx A treeio nhx object
 #' @param default_length_val The default length of branches, used to determine
 #' if a node has descendant branches with default length
 #' @return A data frame of node summary statistics
 #' @export
 summarize_nodes = function ( nhx, default_length_val=NA ) {
-	
+
 	# Create a data frame of internal node annotations
-	tags = cbind( 
-		gene_tree= digest::digest( nhx ), 
+	tags = cbind(
+		gene_tree= digest::digest( nhx ),
 		nhx@data
 	)
 
 	# Add a boolean column that indicates if nodes are parents to
-	# edges with default length 
+	# edges with default length
 	tags$default_length = FALSE
 	if ( ! is.na( default_length_val ) ){
 		default_edges = dplyr::near( nhx@phylo$edge.length, default_length_val )
@@ -708,7 +722,7 @@ summarize_nodes = function ( nhx, default_length_val=NA ) {
 		tags$default_length[ default_nodes ] = TRUE
 	}
 
-	tags %<>% 
+	tags %<>%
 		dplyr::mutate_if( is.factor, as.character )
 
 	return( tags )

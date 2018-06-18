@@ -15,4 +15,3 @@ Dataframe with one row per tip, a species column, and an id column
 \description{
 Parse species and sequence id from a phy
 }
-

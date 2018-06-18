@@ -15,4 +15,3 @@ run character strings
 \description{
 Get run from Illumina fastq sequence header
 }
-

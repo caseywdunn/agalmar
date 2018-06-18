@@ -18,4 +18,3 @@ Converts a NHX node label string to a list of named values
 \examples{
 nhx_label_to_list( "[&&NHX:Ev=S:S=58:ND=0]" )
 }
-

@@ -17,4 +17,3 @@ An Expression object
 Construct an Expression object from list of experiment data and metadata 
 provided by Agalma.
 }
-

@@ -15,4 +15,3 @@ Character string with species
 \description{
 Get species
 }
-

@@ -13,4 +13,3 @@ return character A vector of node label names}
 \description{
 Converts data frame of node annotations to NHX node labels
 }
-

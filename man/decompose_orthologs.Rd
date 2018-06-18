@@ -17,4 +17,3 @@ The subtrees as a list of ape::phylo object
 Decomposes a gene tree into a list of subtrees that have no duplication events. Assumes notung
 style node annotations.
 }
-

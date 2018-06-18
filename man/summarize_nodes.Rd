@@ -18,4 +18,3 @@ A data frame of node summary statistics
 \description{
 Create a data frame with summary statistics for nodes in a phyldog NHX tree
 }
-
