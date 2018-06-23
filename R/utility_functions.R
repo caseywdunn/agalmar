@@ -163,7 +163,7 @@ Expression = function( data_list ) {
 	colnames( object@x ) = object@library_id
 
 	# Parse the lengths, if present
-	if ( exists( 'length', where=data_list ) ){
+	if ( exists( 'gene_length', where=data_list ) ){
 		object@lengths = data_list$gene_length
 	} else{
 		empty_lengths = rep( NA, length( object@x ) )
