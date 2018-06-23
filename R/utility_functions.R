@@ -88,7 +88,7 @@ setClass(
 	representation = representation(
 		species = "character",
 		edgeR = "DGEList",
-		lengths = "matrix",
+		lengths = "vector",
 		individual = "vector",
 		treatment = "vector",
 		id = "vector",
@@ -166,8 +166,7 @@ Expression = function( data_list ) {
 	if ( exists( 'gene_length', where=data_list ) ){
 		object@lengths = data_list$gene_length
 	} else{
-		empty_lengths = rep( NA, length( object@x ) )
-		dim( empty_lengths ) = dim( object@x )
+		empty_lengths = rep( NA, nrow( object@x ) )
 		object@lengths = empty_lengths
 	}
 
@@ -201,7 +200,7 @@ Expression = function( data_list ) {
 
 	# Subsample matrix and row annotations
 	object@x = object@x[ keep, ]
-	object@lengths = object@lengths[ keep, ]
+	object@lengths = object@lengths[ keep ]
 	object@genome_type = object@genome_type[ keep ]
 	object@molecule_type = object@molecule_type[ keep ]
 	object@blast_hit = object@blast_hit[ keep ]
