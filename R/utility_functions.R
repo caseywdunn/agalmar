@@ -495,14 +495,13 @@ parse_gene_tree = function( tree_text ){
 	# Add node depth
 	node_depth = ape::node.depth( tree@phylo )
 
-	tree@data = as.tbl(cbind(
+	tree@data = add_column(
 		tree@data,
 		phy_node_names=phy_node_names,
 		species=species_names,
 		sequence_ids=sequence_ids,
-		node_depth=node_depth,
-		stringsAsFactors=FALSE
-		))
+		node_depth=node_depth
+	)
 
 	return( tree )
 }

@@ -19,7 +19,7 @@ Imports:
     ape (>= 3.3),
     treeio,
     DESeq2,
-    dplyr,
+    tidyverse,
     magrittr,
     digest,
     methods,
