@@ -2,7 +2,7 @@
 % Please edit documentation in R/utility_functions.R
 \name{Expression}
 \alias{Expression}
-\title{Construct an Expression object from list of experiment data and metadata 
+\title{Construct an Expression object from list of experiment data and metadata
 provided by Agalma.}
 \usage{
 Expression(data_list)
@@ -14,6 +14,6 @@ Expression(data_list)
 An Expression object
 }
 \description{
-Construct an Expression object from list of experiment data and metadata 
+Construct an Expression object from list of experiment data and metadata
 provided by Agalma.
 }

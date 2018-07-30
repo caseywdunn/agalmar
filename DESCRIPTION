@@ -20,6 +20,8 @@ Imports:
     treeio,
     DESeq2,
     tidyverse,
+    tibble,
+    dplyr,
     magrittr,
     digest,
     methods,
@@ -30,4 +32,4 @@ Suggests:
     devtools,
     knitr
 VignetteBuilder: knitr
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0

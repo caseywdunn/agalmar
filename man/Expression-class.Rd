@@ -4,7 +4,7 @@
 \name{Expression-class}
 \alias{Expression-class}
 \title{An S4 class to represent gene expression data for multiple samples
-for a given species. Assumes that all expession data are derived 
+for a given species. Assumes that all expession data are derived
 from mapping to the same reference. Applies to data for g genes
 across s samples (ie, sequenced libraries).}
 \description{

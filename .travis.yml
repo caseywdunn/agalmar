@@ -6,6 +6,8 @@ r_packages:
   - rmarkdown
   - devtools
   - tidyverse
+  - tibble
+  - dplyr
 
 r_github_packages:
   - caseywdunn/hutan

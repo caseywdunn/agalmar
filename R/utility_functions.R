@@ -429,6 +429,7 @@ nhx_label_to_list = function( label ){
 #'
 #' @param tree_text Text representation of a tree in nhx format with notung or phyldog fields.
 #' @return phy The tree, as an ape phylo object
+#' @importFrom tibble add_column
 #' @export
 parse_gene_tree = function( tree_text ){
 
